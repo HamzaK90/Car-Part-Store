@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: car-parts-store
+
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 10
+      pool-name: carparts-pool
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      # Flyway owns the schema.
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: false
+
+server:
+  port: 8080
+  error:
+    include-message: always
+
+security:
+  jwt:
+    secret: ${JWT_SECRET}
+    expiry-minutes: ${JWT_EXPIRY_MINUTES:60}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui
+    operations-sorter: method
+  api-docs:
+    path: /v3/api-docs
+
+logging:
+  level:
+    org.flywaydb: info

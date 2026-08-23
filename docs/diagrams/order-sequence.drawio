@@ -1,0 +1,142 @@
+<mxfile host="app.diagrams.net" type="device">
+  <diagram id="sequence-—-placeorder" name="Sequence — placeOrder">
+    <mxGraphModel dx="1422" dy="798" grid="1" gridSize="10" guides="1" tooltips="1" connect="1"
+                  arrows="1" fold="1" page="1" pageScale="1" pageWidth="1860" pageHeight="1000"
+                  math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="t" value="placeOrder — one transaction" style="text;html=1;align=left;verticalAlign=middle;fontSize=20;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="10" width="1000" height="34" as="geometry"/>
+        </mxCell>
+        <mxCell id="ll1" value="Client" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fontSize=12;fontStyle=1;fillColor=#dae8fc;strokeColor=#6c8ebf;size=40;" vertex="1" parent="1">
+          <mxGeometry x="60" y="70" width="170" height="880" as="geometry"/>
+        </mxCell>
+        <mxCell id="ll2" value="OrderController" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fontSize=12;fontStyle=1;fillColor=#dae8fc;strokeColor=#6c8ebf;size=40;" vertex="1" parent="1">
+          <mxGeometry x="300" y="70" width="190" height="880" as="geometry"/>
+        </mxCell>
+        <mxCell id="ll3" value="OrderService" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fontSize=12;fontStyle=1;fillColor=#dae8fc;strokeColor=#6c8ebf;size=40;" vertex="1" parent="1">
+          <mxGeometry x="570" y="70" width="190" height="880" as="geometry"/>
+        </mxCell>
+        <mxCell id="ll4" value="Repositories (JPA / JdbcClient)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fontSize=12;fontStyle=1;fillColor=#dae8fc;strokeColor=#6c8ebf;size=40;" vertex="1" parent="1">
+          <mxGeometry x="840" y="70" width="260" height="880" as="geometry"/>
+        </mxCell>
+        <mxCell id="ll5" value="PostgreSQL" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fontSize=12;fontStyle=1;fillColor=#dae8fc;strokeColor=#6c8ebf;size=40;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="70" width="180" height="880" as="geometry"/>
+        </mxCell>
+        <mxCell id="m1" value="POST /api/orders" style="html=1;verticalAlign=bottom;rounded=0;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="145.0" y="160" as="sourcePoint"/>
+            <mxPoint x="395.0" y="160" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m2" value="placeOrder(cmd)  @Transactional" style="html=1;verticalAlign=bottom;rounded=0;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="395.0" y="200" as="sourcePoint"/>
+            <mxPoint x="665.0" y="200" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m3" value="validate customer, branch, warehouse, employee-at-branch" style="html=1;verticalAlign=bottom;rounded=0;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="665.0" y="250" as="sourcePoint"/>
+            <mxPoint x="970.0" y="250" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m4" value="SELECT … FOR UPDATE  (stock rows)" style="html=1;verticalAlign=bottom;rounded=0;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="970.0" y="300" as="sourcePoint"/>
+            <mxPoint x="1270.0" y="300" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m5" value="locked rows" style="html=1;verticalAlign=bottom;rounded=0;fontSize=11;endArrow=open;endFill=0;dashed=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1270.0" y="340" as="sourcePoint"/>
+            <mxPoint x="665.0" y="340" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m6" value="check every line against available stock" style="html=1;verticalAlign=bottom;rounded=0;fontSize=11;endArrow=block;endFill=1;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="665.0" y="380" as="sourcePoint"/>
+            <mxPoint x="665.0" y="420" as="targetPoint"/>
+            <Array as="points">
+              <mxPoint x="755.0" y="380"/>
+              <mxPoint x="755.0" y="420"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m7" value="snapshot unit_price ← part.price" style="html=1;verticalAlign=bottom;rounded=0;fontSize=11;endArrow=block;endFill=1;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="665.0" y="470" as="sourcePoint"/>
+            <mxPoint x="665.0" y="510" as="targetPoint"/>
+            <Array as="points">
+              <mxPoint x="755.0" y="470"/>
+              <mxPoint x="755.0" y="510"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m8" value="save(order + items)" style="html=1;verticalAlign=bottom;rounded=0;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="665.0" y="560" as="sourcePoint"/>
+            <mxPoint x="970.0" y="560" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m9" value="UPDATE warehouse_stock  SET quantity = quantity − ?" style="html=1;verticalAlign=bottom;rounded=0;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="970.0" y="600" as="sourcePoint"/>
+            <mxPoint x="1270.0" y="600" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m10" value="COMMIT" style="html=1;verticalAlign=bottom;rounded=0;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="665.0" y="660" as="sourcePoint"/>
+            <mxPoint x="1270.0" y="660" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m11" value="order" style="html=1;verticalAlign=bottom;rounded=0;fontSize=11;endArrow=open;endFill=0;dashed=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="665.0" y="710" as="sourcePoint"/>
+            <mxPoint x="395.0" y="710" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m12" value="201 Created" style="html=1;verticalAlign=bottom;rounded=0;fontSize=11;endArrow=open;endFill=0;dashed=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="395.0" y="750" as="sourcePoint"/>
+            <mxPoint x="145.0" y="750" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="alt" value="alt  short" style="shape=umlFrame;whiteSpace=wrap;html=1;fontSize=11;fillColor=none;strokeColor=#b85450;width=110;height=26;fontColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="540" y="810" width="800" height="110" as="geometry"/>
+        </mxCell>
+        <mxCell id="m13" value="throw InsufficientStockException" style="html=1;verticalAlign=bottom;rounded=0;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="665.0" y="870" as="sourcePoint"/>
+            <mxPoint x="1270.0" y="870" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rb" value="ROLLBACK — stock untouched, no order row" style="text;html=1;align=left;fontSize=11;fontColor=#B85450;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="560" y="880" width="420" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="n1" value="ONE TRANSACTION
+
+Placing an order writes to three tables and must be
+all-or-nothing, so the whole method is a single unit
+of work:
+
+• SELECT … FOR UPDATE serialises concurrent orders for
+  the same part, so two buyers cannot take the last unit.
+• unit_price is copied onto the line item, fixing the
+  invoice total at the moment of sale.
+• Any failure rolls everything back — the order row and
+  the stock decrement are never half-applied." style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1420" y="120" width="380" height="230" as="geometry"/>
+        </mxCell>
+        <mxCell id="n2" value="Insufficient stock is a client error, not a bug:
+it returns 409 Conflict as an RFC 7807 ProblemDetail
+naming the part and the quantity available, so the
+caller can correct the request." style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1420" y="380" width="380" height="110" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

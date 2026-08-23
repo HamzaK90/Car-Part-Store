@@ -1,0 +1,35 @@
+# Build output
+target/
+build/
+!.mvn/wrapper/maven-wrapper.jar
+
+# Secrets
+.env
+*.env
+!.env.example
+application-local.yml
+application-local.properties
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.classpath
+.project
+.settings/
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# draw.io backups
+*.drawio.bkp
+*.drawio.dtmp
+
+# Logs / temp
+*.log
+*.pid
+hs_err_pid*
