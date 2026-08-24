@@ -67,9 +67,15 @@ CREATE CONSTRAINT TRIGGER ct_order_employee_at_branch
 -- ---------------------------------------------------------------------------
 -- Rule 2 — a department's manager must be one of its own employees
 --
--- Guarded from both sides, because both sides can break it: setting the manager, and
--- transferring the manager out. Unlike rule 1 this is a statement about the present, not
--- about history, so a transfer that orphans a department must be refused.
+-- Handled from both sides, because both sides can break it, but they are handled
+-- differently: naming an outsider as manager is REFUSED, while a sitting manager leaving
+-- is ALLOWED and simply vacates the post.
+--
+-- That asymmetry is the point. Losing a manager is a normal event — people transfer, people
+-- leave — and refusing the transfer would make the schema fight ordinary staff movement.
+-- What must never happen is a department whose manager works somewhere else. So the
+-- department is left headless, which is a legitimate state, and v_department_without_manager
+-- reports it so an admin can fill the post.
 --
 -- The department-side trigger is INITIALLY DEFERRED to match fk_department_manager —
 -- the manager's employee row may not exist yet when the department row is written.
@@ -98,30 +104,34 @@ CREATE CONSTRAINT TRIGGER ct_department_manager_membership
     DEFERRABLE INITIALLY DEFERRED
     FOR EACH ROW EXECUTE FUNCTION fn_department_manager_membership();
 
-CREATE FUNCTION fn_employee_transfer_keeps_managed() RETURNS TRIGGER AS $$
+-- Transferring a manager to another department vacates the post they leave behind. The
+-- alternative — refusing the transfer until somebody reassigns the department first — puts
+-- a schema constraint in the way of an ordinary HR action, and the department would end up
+-- headless anyway once the transfer finally went through.
+--
+-- This is an ordinary trigger, not a CONSTRAINT TRIGGER: it changes data rather than
+-- rejecting it, and constraint triggers are for validation. It mirrors what
+-- fk_department_manager already does on ON DELETE SET NULL, so a manager who leaves the
+-- company and a manager who moves departments both leave the same vacancy behind.
+--
+-- No recursion: the UPDATE below fires ct_department_manager_membership, which returns
+-- immediately because the new manager_id is NULL.
+
+CREATE FUNCTION fn_employee_transfer_vacates_post() RETURNS TRIGGER AS $$
 BEGIN
-    IF EXISTS (
-        SELECT 1
-        FROM department d
-        WHERE d.manager_id    = NEW.employee_id
-          AND d.department_id = OLD.department_id
-    ) THEN
-        RAISE EXCEPTION
-            'employee % still manages department %; reassign that department first',
-            NEW.employee_id, OLD.department_id
-            USING ERRCODE   = 'integrity_constraint_violation',
-                  CONSTRAINT = 'ct_employee_transfer_keeps_managed';
-    END IF;
+    UPDATE department
+       SET manager_id = NULL
+     WHERE department_id = OLD.department_id
+       AND manager_id    = NEW.employee_id;
     RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE CONSTRAINT TRIGGER ct_employee_transfer_keeps_managed
+CREATE TRIGGER tg_employee_transfer_vacates_post
     AFTER UPDATE OF department_id ON employee
-    DEFERRABLE INITIALLY DEFERRED
     FOR EACH ROW
     WHEN (OLD.department_id IS DISTINCT FROM NEW.department_id)
-    EXECUTE FUNCTION fn_employee_transfer_keeps_managed();
+    EXECUTE FUNCTION fn_employee_transfer_vacates_post();
 
 
 -- ---------------------------------------------------------------------------

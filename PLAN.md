@@ -16,8 +16,10 @@ REST API for a car parts retail business.
 - A **manager** is not a separate kind of person — it is the employee a department points at.
   A department is created before anyone is hired into it, so `manager_id` starts NULL and is
   filled once there is someone to promote; the database only insists that whoever is named
-  works in that department. "Every department ends up with a manager" is a service-layer
-  rule, and `v_department_without_manager` is what makes a breach visible.
+  works in that department. A manager who transfers away or leaves the company vacates the
+  post rather than blocking the move — losing a manager is an ordinary event, having one who
+  works elsewhere is not. "Every department ends up with a manager" is a service-layer rule,
+  and `v_department_without_manager` is the alert an admin acts on.
 - **Suppliers** supply **parts**. Each part has an SKU, price, weight, manufacturing place, and a
   set of cars it fits.
 - **Orders** are placed by a customer at a branch, handled by a sales employee of that branch, and
@@ -116,6 +118,9 @@ real database is what checksums them; after that, every change becomes a new fil
       and offers the new employee as a candidate — read from `v_department_without_manager`,
       whose `eligible_employees` distinguishes "nobody to promote" from "here are four".
       Accepting is a separate `PATCH /api/departments/{id}` with `managerId`.
+- [ ] `GET /api/reports/departments-without-manager` — the standing vacancy alert an `ADMIN`
+      works through. A manager who transfers or leaves vacates the post silently, so this is
+      the only thing that surfaces it.
 
 ### 7 — Security
 - [ ] `SecurityFilterChain`, stateless, `JwtAuthFilter`, BCrypt cost 12
@@ -133,7 +138,13 @@ real database is what checksums them; after that, every change becomes a new fil
 ### 9 — Tests
 - [ ] Integration tests on embedded PostgreSQL running the real migrations
 - [ ] Constraint tests — the database rejects negative salary, a both-subtype department,
-      oversold stock, and a warehouse employee on a branch order
+      oversold stock, a warehouse employee on a branch order, a branch holding stock, a
+      warehouse used as a sales location, an outsider named as manager, a plaintext
+      password, a zero-quantity line, the same part twice on one order, and an inverted
+      fitment year range. Port the 14 assertions already proven by hand.
+- [ ] Behaviour tests — transferring or deleting a manager vacates the post and the
+      department surfaces in `v_department_without_manager`; repricing a part leaves an
+      existing order total unmoved
 - [ ] Concurrency test — two orders for the last unit, exactly one succeeds
 - [ ] `MockMvc` auth tests — 401 / 403 / 200
 - [ ] JaCoCo report
@@ -158,6 +169,7 @@ GET    /api/warehouses/{id}/stock
 GET    /api/reports/revenue-by-customer
 GET    /api/reports/low-stock
 GET    /api/reports/department-headcount
+GET    /api/reports/departments-without-manager
 PATCH  /api/departments/{id}          set managerId
 CRUD   /api/{employees,customers,suppliers,departments}
 ```
