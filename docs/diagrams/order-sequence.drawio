@@ -24,13 +24,13 @@
         <mxCell id="ll5" value="PostgreSQL" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fontSize=12;fontStyle=1;fillColor=#dae8fc;strokeColor=#6c8ebf;size=40;" vertex="1" parent="1">
           <mxGeometry x="1180" y="70" width="180" height="880" as="geometry"/>
         </mxCell>
-        <mxCell id="m1" value="POST /api/orders" style="html=1;verticalAlign=bottom;rounded=0;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1">
+        <mxCell id="m1" value="POST /api/orders  (Bearer JWT)" style="html=1;verticalAlign=bottom;rounded=0;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="145.0" y="160" as="sourcePoint"/>
             <mxPoint x="395.0" y="160" as="targetPoint"/>
           </mxGeometry>
         </mxCell>
-        <mxCell id="m2" value="placeOrder(cmd)  @Transactional" style="html=1;verticalAlign=bottom;rounded=0;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1">
+        <mxCell id="m2" value="placeOrder(cmd, employeeId from JWT)  @Transactional" style="html=1;verticalAlign=bottom;rounded=0;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="395.0" y="200" as="sourcePoint"/>
             <mxPoint x="665.0" y="200" as="targetPoint"/>

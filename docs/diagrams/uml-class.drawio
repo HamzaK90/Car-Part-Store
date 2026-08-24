@@ -103,7 +103,7 @@
           <mxGeometry y="86" width="280" height="20" as="geometry"/>
         </mxCell>
         <mxCell id="user" value="AppUser" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;collapsible=0;marginBottom=0;" vertex="1" parent="1">
-          <mxGeometry x="1520" y="80" width="280" height="146" as="geometry"/>
+          <mxGeometry x="1520" y="80" width="280" height="166" as="geometry"/>
         </mxCell>
         <mxCell id="user-m0" value="- id: Long" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="user">
           <mxGeometry y="26" width="280" height="20" as="geometry"/>
@@ -123,6 +123,9 @@
         <mxCell id="user-m5" value="- createdAt: Instant" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="user">
           <mxGeometry y="126" width="280" height="20" as="geometry"/>
         </mxCell>
+        <mxCell id="user-m6" value="- employee: Employee" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="user">
+          <mxGeometry y="146" width="280" height="20" as="geometry"/>
+        </mxCell>
         <mxCell id="supp" value="Supplier" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;collapsible=0;marginBottom=0;" vertex="1" parent="1">
           <mxGeometry x="40" y="620" width="260" height="106" as="geometry"/>
         </mxCell>
@@ -139,7 +142,7 @@
           <mxGeometry y="86" width="260" height="20" as="geometry"/>
         </mxCell>
         <mxCell id="part" value="Part" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;collapsible=0;marginBottom=0;" vertex="1" parent="1">
-          <mxGeometry x="360" y="600" width="300" height="206" as="geometry"/>
+          <mxGeometry x="360" y="600" width="300" height="226" as="geometry"/>
         </mxCell>
         <mxCell id="part-m0" value="- id: Long" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="part">
           <mxGeometry y="26" width="300" height="20" as="geometry"/>
@@ -162,11 +165,14 @@
         <mxCell id="part-m6" value="- manufacturingPlace: String" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="part">
           <mxGeometry y="146" width="300" height="20" as="geometry"/>
         </mxCell>
-        <mxCell id="part-m7" value="- supplier: Supplier" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="part">
+        <mxCell id="part-m9" value="- reorderLevel: int" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="part">
           <mxGeometry y="166" width="300" height="20" as="geometry"/>
         </mxCell>
-        <mxCell id="part-m8" value="- fitments: List&lt;CarFitment&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="part">
+        <mxCell id="part-m7" value="- supplier: Supplier" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="part">
           <mxGeometry y="186" width="300" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="part-m8" value="- fitments: List&lt;CarFitment&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="part">
+          <mxGeometry y="206" width="300" height="20" as="geometry"/>
         </mxCell>
         <mxCell id="fit" value="CarFitment" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;collapsible=0;marginBottom=0;" vertex="1" parent="1">
           <mxGeometry x="740" y="620" width="280" height="146" as="geometry"/>
@@ -433,10 +439,18 @@ Department reference, and which subtype it
 resolves to is what makes them sales staff
 or warehouse staff — no role field required.
 
-AppUser is deliberately not linked to
-Employee: logging in and being staff are
-separate concerns." style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="1100" y="620" width="340" height="210" as="geometry"/>
+AppUser.employee is optional in both
+directions: a login may belong to nobody on
+the payroll (a service account), and staff
+may have no login. It is unique, so one
+person never holds two accounts.
+
+There is no MANAGER role. A manager is the
+Employee a Department points at, so
+is_manager is derived at login rather than
+stored — one fact, one place, nothing to
+drift out of step." style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="620" width="340" height="330" as="geometry"/>
         </mxCell>
       </root>
     </mxGraphModel>
