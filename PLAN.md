@@ -61,6 +61,10 @@ storing a second copy that could disagree.
 - [x] `pom.xml` + Maven wrapper
 - [x] Package skeleton `com.carparts.{config,domain,repository,service,web,security}`
 - [x] `application.yml` — credentials from environment variables
+- [x] `application-local.example.yml` — local dev secrets via the `local` profile.
+      Spring Boot does not read `.env`, so a `.env` file alone configures nothing; the
+      git-ignored `application-local.yml` is the mechanism instead. `.env.example`
+      remains the reference for what CI and production must export.
 - [ ] `README.md` — written in the documentation pass
 
 **Gate:** ✅ `./mvnw -B -DskipTests compile` → BUILD SUCCESS.
@@ -124,6 +128,17 @@ Consequences that come with running everywhere:
 
 ### 4 — Domain + repositories
 - [ ] Entities, `@Embeddable Address`, enums, `@Inheritance(JOINED)` on `Department`
+- [ ] **Every enum field needs two annotations**, or `ddl-auto: validate` refuses to start:
+
+      @Enumerated(EnumType.STRING)
+      @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+      private OrderStatus status;
+
+      The schema uses real PostgreSQL enum types, not VARCHAR. That was a deliberate
+      choice for database-level typing, and the price is paid later: `ALTER TYPE … ADD
+      VALUE` cannot be used in the transaction that adds it, so introducing a new status
+      takes two migrations, and removing one means recreating the type. Miss the
+      annotation on a single field and start-up fails — the failure is loud, not subtle.
 - [ ] `JpaRepository` per aggregate
 - [ ] `ReportingRepository` — hand-written SQL via `JdbcClient`
 

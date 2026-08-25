@@ -1,0 +1,39 @@
+# Template for local development secrets.
+#
+#   copy to:  src/main/resources/application-local.yml     (git-ignored)
+#   run with: ./mvnw spring-boot:run -Dspring-boot.run.profiles=local
+#
+# Spring Boot does NOT read .env files — a variable written there reaches nothing unless
+# something else exports it. This file is the mechanism instead: the 'local' profile
+# overrides application.yml directly, in the same format as the values it replaces.
+#
+# In CI and production, set the real environment variables that application.yml already
+# reads (DB_URL, DB_USER, DB_PASSWORD, JWT_SECRET, SEED_ADMIN_PASSWORD_HASH,
+# SEED_STAFF_PASSWORD_HASH) and do not use this profile at all.
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/carparts
+    username: carparts_app
+    password: CHANGE-ME
+
+  flyway:
+    placeholders:
+      # BCrypt digests for the accounts V6 seeds. Cost 12, exactly 60 characters, or
+      # ck_app_user_password_hashed fails the migration.
+      #
+      #   python -c "import bcrypt;print(bcrypt.hashpw(b'YOUR-PASSWORD', bcrypt.gensalt(12, prefix=b'2a')).decode())"
+      #
+      # Single-quote the value: a digest contains $ characters.
+      #
+      # admin_hash covers 'admin' and 'svc-reporting'; staff_hash covers 'layla',
+      # 'omar' and 'rana'.
+      seed_admin_password_hash: 'CHANGE-ME'
+      seed_staff_password_hash: 'CHANGE-ME'
+
+security:
+  jwt:
+    # HS256 signing key. Generate one with:
+    #   openssl rand -base64 48
+    secret: CHANGE-ME
+    expiry-minutes: 60
