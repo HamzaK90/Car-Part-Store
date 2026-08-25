@@ -97,7 +97,30 @@ exists yet and **the files are still safe to edit in place.** The first `mvnw` r
 real database is what checksums them; after that, every change becomes a new file.
 
 ### 3 — Seed data
-- [ ] `V6__seed_demo_data.sql` — deterministic demo dataset
+- [x] `V6__seed_demo_data.sql` — deterministic demo dataset
+
+V6 sits in `classpath:db/migration` with V1–V5, so it runs on every start-up. All six
+migrations are committed; that is normal practice, and the schema is only reproducible if
+they are.
+
+Demo passwords are **not** in the repository. V6 takes two Flyway placeholders,
+`seed_admin_password_hash` and `seed_staff_password_hash`, wired in `application.yml` to
+`SEED_ADMIN_PASSWORD_HASH` and `SEED_STAFF_PASSWORD_HASH`. Neither has a default, so an
+unset variable fails the migration on `ck_app_user_password_hashed` instead of creating an
+account anyone could log into from a published digest. `.env.example` documents how to
+generate one.
+
+Consequences that come with running everywhere:
+
+- A deployment that does not want demo rows must exclude V6 deliberately — narrow
+  `spring.flyway.locations`, or do not ship the file. There is no profile guard.
+- **Tests (step 9)** run the real migrations, so V6 runs too. `application-test.yml` must
+  supply a fixed test-only digest, or `ck_app_user_password_hashed` rejects the empty
+  placeholder and every test fails. A hardcoded hash is acceptable *there* and nowhere
+  else: it guards an ephemeral database destroyed at the end of the run.
+- **CI (step 10)** needs no stored secret — generate a throwaway digest at job start.
+- Business rows stay deterministic; only the five hash values differ per environment,
+  which is the security property rather than a defect.
 
 ### 4 — Domain + repositories
 - [ ] Entities, `@Embeddable Address`, enums, `@Inheritance(JOINED)` on `Department`

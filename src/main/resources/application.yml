@@ -24,6 +24,13 @@ spring:
     enabled: true
     locations: classpath:db/migration
     baseline-on-migrate: false
+    # Seed credentials for V6, which runs on every start-up. Kept out of version control
+    # — see .env.example. No defaults on purpose: an unset variable must fail the
+    # migration, never quietly create an account with a password somebody could read
+    # off the repository.
+    placeholders:
+      seed_admin_password_hash: ${SEED_ADMIN_PASSWORD_HASH}
+      seed_staff_password_hash: ${SEED_STAFF_PASSWORD_HASH}
 
 server:
   port: 8080
