@@ -7,9 +7,9 @@ package com.carparts.service;
  * <p>Distinct from {@link InsufficientStockException}, which is not the caller's mistake: the
  * same request might well succeed once stock arrives, so it earns a 409 rather than a 400.
  */
-public class InvalidOrderException extends RuntimeException {
+public class InvalidRequestException extends RuntimeException {
 
-    public InvalidOrderException(String message) {
+    public InvalidRequestException(String message) {
         super(message);
     }
 }
