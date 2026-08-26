@@ -65,7 +65,8 @@ storing a second copy that could disagree.
       Spring Boot does not read `.env`, so a `.env` file alone configures nothing; the
       git-ignored `application-local.yml` is the mechanism instead. `.env.example`
       remains the reference for what CI and production must export.
-- [ ] `README.md` — written in the documentation pass
+- [x] `README.md` — an interim one covering what actually works. The full version, with the
+      endpoint table and Swagger screenshot, waits for step 10 and an API that exists
 
 **Gate:** ✅ `./mvnw -B -DskipTests compile` → BUILD SUCCESS.
 
