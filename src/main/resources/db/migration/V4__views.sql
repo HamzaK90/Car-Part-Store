@@ -84,6 +84,36 @@ GROUP BY o.order_id;
 
 
 -- ---------------------------------------------------------------------------
+-- v_customer_revenue
+--
+-- What each customer has bought from the shop: how many orders, and what they came to.
+-- Built on v_order_total rather than re-deriving the same sum a second time.
+--
+-- NOTE ON THE NAME: this is revenue the business earned from a customer, not money the
+-- customer holds or still owes. The schema has no payments table and so cannot know what
+-- anyone owes. An earlier draft called this v_customer_balance, which invited exactly that
+-- misreading; "balance" would only be honest once a payment table exists and this becomes
+-- ordered minus paid.
+--
+-- Cancelled orders are excluded — they earned nothing. The exclusion sits in the JOIN
+-- condition rather than a WHERE clause, so a customer whose every order was cancelled
+-- still appears at zero instead of vanishing from the report.
+-- ---------------------------------------------------------------------------
+
+CREATE VIEW v_customer_revenue AS
+SELECT c.customer_id,
+       c.name,
+       c.phone_number,
+       COUNT(t.order_id)                   AS order_count,
+       COALESCE(SUM(t.total_amount), 0.00) AS revenue
+FROM customer c
+LEFT JOIN v_order_total t
+       ON t.customer_id = c.customer_id
+      AND t.status <> 'CANCELLED'
+GROUP BY c.customer_id, c.name, c.phone_number;
+
+
+-- ---------------------------------------------------------------------------
 -- v_low_stock
 --
 -- Inventory that needs reordering, joined out to the names and the supplier a human needs

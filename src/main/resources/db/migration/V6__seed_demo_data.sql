@@ -84,9 +84,13 @@ INSERT INTO car_fitment (part_id, make, model, year_from, year_to) VALUES
 -- hired into it, and one of them is promoted. manager_id is therefore left NULL on insert
 -- and set by the UPDATE at the end of this block.
 --
--- That ordering means this file never depends on fk_department_manager being deferred. It
--- would work either way, but a seed script that does not lean on deferral is one less
--- thing to explain when somebody runs a statement from it by hand.
+-- That ordering means the department block never depends on fk_department_manager being
+-- deferred.
+--
+-- The order block below does depend on deferral, and unavoidably so: ct_order_has_lines
+-- requires every order to have at least one line, and a header must exist before its lines
+-- can reference it. This whole file therefore has to run in one transaction, which Flyway
+-- always provides. Replaying it by hand needs psql --single-transaction.
 -- ---------------------------------------------------------------------------
 
 INSERT INTO department (department_id, name, type, city, street) VALUES

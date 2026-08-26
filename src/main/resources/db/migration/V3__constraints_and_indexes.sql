@@ -135,6 +135,99 @@ CREATE TRIGGER tg_employee_transfer_vacates_post
 
 
 -- ---------------------------------------------------------------------------
+-- Rule 3 — an order's status only ever moves on from PLACED
+--
+-- order_status constrains which values exist, not which moves between them are legal. A
+-- CHECK cannot express this either: it sees the row's new values and has no idea what the
+-- row said a moment ago. Only a trigger can compare OLD with NEW.
+--
+-- PLACED is the only status with anywhere to go. FULFILLED means the parts have left the
+-- building and CANCELLED means they never will; reversing either is a return, which this
+-- schema does not model. Silently flipping a FULFILLED order to CANCELLED would take it
+-- out of v_customer_revenue with no record of why.
+--
+-- CustomerOrder.fulfil() and cancel() enforce the same rule in Java for a clean error
+-- message. This is the half that holds when the UPDATE arrives from somewhere else.
+-- ---------------------------------------------------------------------------
+
+CREATE FUNCTION fn_order_status_transition() RETURNS TRIGGER AS $$
+BEGIN
+    IF OLD.status IS DISTINCT FROM NEW.status AND OLD.status <> 'PLACED' THEN
+        RAISE EXCEPTION
+            'order % is already %; it cannot become %',
+            OLD.order_id, OLD.status, NEW.status
+            USING ERRCODE   = 'integrity_constraint_violation',
+                  CONSTRAINT = 'ct_order_status_transition';
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE CONSTRAINT TRIGGER ct_order_status_transition
+    AFTER UPDATE OF status ON customer_order
+    DEFERRABLE INITIALLY IMMEDIATE
+    FOR EACH ROW EXECUTE FUNCTION fn_order_status_transition();
+
+
+-- ---------------------------------------------------------------------------
+-- Rule 4 — an order has at least one line
+--
+-- The UML says CustomerOrder contains 1..* OrderItem, but nothing enforced it: an empty
+-- order was storable, and v_order_total reported it at 0.00 without complaint.
+--
+-- INITIALLY DEFERRED is essential rather than decorative. The header must be inserted
+-- before the lines that reference it, so an immediate check would reject every legitimate
+-- order at the first statement. Deferring to COMMIT asks the question once the transaction
+-- has finished saying what it means — the same reason fk_department_manager is deferred.
+--
+-- Guarded from both ends: inserting a header that never gains lines, and deleting the last
+-- line from an order that survives. Deleting the order itself is fine — its lines go with
+-- it by ON DELETE CASCADE, and the first check below lets that pass.
+--
+-- CONSEQUENCE: V6 seed data must run inside a transaction, which Flyway always provides.
+-- Running its statements one at a time in an autocommit session will now fail at the first
+-- order header. Use psql --single-transaction if you replay it by hand.
+-- ---------------------------------------------------------------------------
+
+CREATE FUNCTION fn_order_has_lines() RETURNS TRIGGER AS $$
+DECLARE
+    target_order BIGINT;
+BEGIN
+    IF TG_OP = 'DELETE' THEN
+        target_order := OLD.order_id;
+    ELSE
+        target_order := NEW.order_id;
+    END IF;
+
+    -- The order may have been deleted in this same transaction; its lines went with it and
+    -- there is nothing left to be empty.
+    IF NOT EXISTS (SELECT 1 FROM customer_order WHERE order_id = target_order) THEN
+        RETURN NULL;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM order_item WHERE order_id = target_order) THEN
+        RAISE EXCEPTION
+            'order % has no lines; an order must contain at least one part',
+            target_order
+            USING ERRCODE   = 'integrity_constraint_violation',
+                  CONSTRAINT = 'ct_order_has_lines';
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE CONSTRAINT TRIGGER ct_order_has_lines
+    AFTER INSERT ON customer_order
+    DEFERRABLE INITIALLY DEFERRED
+    FOR EACH ROW EXECUTE FUNCTION fn_order_has_lines();
+
+CREATE CONSTRAINT TRIGGER ct_order_keeps_a_line
+    AFTER DELETE ON order_item
+    DEFERRABLE INITIALLY DEFERRED
+    FOR EACH ROW EXECUTE FUNCTION fn_order_has_lines();
+
+
+-- ---------------------------------------------------------------------------
 -- Indexes behind the foreign keys
 --
 -- Postgres indexes primary and unique keys automatically but never foreign keys, so an
