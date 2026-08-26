@@ -79,7 +79,7 @@ public class OrderService {
      *     field of the command: a request body can never supply it.
      * @throws NotFoundException if the customer, branch, warehouse, handler or any part is
      *     unknown — including an id that exists but is of the wrong kind
-     * @throws InvalidOrderException if the order has no lines, a quantity is not positive, or
+     * @throws InvalidRequestException if the order has no lines, a quantity is not positive, or
      *     the handler works at a different branch
      * @throws InsufficientStockException if the warehouse cannot cover it, listing every short
      *     part; nothing is written
@@ -133,16 +133,16 @@ public class OrderService {
      */
     private void requireIds(PlaceOrderCommand command) {
         if (command == null) {
-            throw new InvalidOrderException("no order was supplied");
+            throw new InvalidRequestException("no order was supplied");
         }
         if (command.customerId() == null) {
-            throw new InvalidOrderException("an order must name a customer");
+            throw new InvalidRequestException("an order must name a customer");
         }
         if (command.branchId() == null) {
-            throw new InvalidOrderException("an order must name the branch that took it");
+            throw new InvalidRequestException("an order must name the branch that took it");
         }
         if (command.warehouseId() == null) {
-            throw new InvalidOrderException("an order must name the warehouse filling it");
+            throw new InvalidRequestException("an order must name the warehouse filling it");
         }
     }
 
@@ -155,18 +155,18 @@ public class OrderService {
      */
     private Map<Long, Integer> demandByPart(PlaceOrderCommand command) {
         if (command.lines() == null || command.lines().isEmpty()) {
-            throw new InvalidOrderException("an order must contain at least one line");
+            throw new InvalidRequestException("an order must contain at least one line");
         }
         Map<Long, Integer> demand = new LinkedHashMap<>();
         for (PlaceOrderCommand.Line line : command.lines()) {
             if (line == null) {
-                throw new InvalidOrderException("an order line cannot be empty");
+                throw new InvalidRequestException("an order line cannot be empty");
             }
             if (line.partId() == null) {
-                throw new InvalidOrderException("every line must name a part");
+                throw new InvalidRequestException("every line must name a part");
             }
             if (line.quantity() <= 0) {
-                throw new InvalidOrderException(
+                throw new InvalidRequestException(
                         "quantity for part " + line.partId() + " must be greater than zero");
             }
             demand.merge(line.partId(), line.quantity(), Integer::sum);
@@ -188,7 +188,7 @@ public class OrderService {
         Employee handler = employees.findById(employeeId)
                 .orElseThrow(() -> NotFoundException.of("employee", employeeId));
         if (!handler.worksAt(branch)) {
-            throw new InvalidOrderException(
+            throw new InvalidRequestException(
                     handler.getFullName() + " does not work at " + branch.getName()
                             + " and cannot handle its orders");
         }
