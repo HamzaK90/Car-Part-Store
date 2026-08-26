@@ -4,6 +4,7 @@ import com.carparts.domain.Branch;
 import com.carparts.domain.Customer;
 import com.carparts.domain.CustomerOrder;
 import com.carparts.domain.Employee;
+import com.carparts.domain.OrderStatus;
 import com.carparts.domain.Part;
 import com.carparts.domain.Warehouse;
 import com.carparts.domain.WarehouseStock;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -117,6 +119,198 @@ public class OrderService {
         CustomerOrder saved = orders.save(order);
         demand.forEach((partId, quantity) -> locked.get(partId).decrease(quantity));
         return saved;
+    }
+
+    /**
+     * Marks an order delivered.
+     *
+     * <p>Stock is untouched: it left the shelf when the order was placed, and fulfilment only
+     * records that it reached the customer. Decrementing again here would double-count, which is
+     * exactly the mistake this method exists to not make.
+     *
+     * @throws NotFoundException if there is no such order
+     * @throws IllegalStateException if it is no longer PLACED — mapped to 409
+     */
+    @Transactional
+    public CustomerOrder fulfil(Long orderId) {
+        CustomerOrder order = orders.findById(orderId)
+                .orElseThrow(() -> NotFoundException.of("order", orderId));
+        order.fulfil();
+        return order;
+    }
+
+    /**
+     * Cancels an order and puts the parts back on the shelf.
+     *
+     * <p>The restoration is the point. {@code CustomerOrder.cancel()} only changes a status, and
+     * wiring that to an endpoint on its own would leak inventory silently — stock removed when
+     * the order was placed, never returned, and nothing anywhere reporting a discrepancy.
+     *
+     * <p>Rows are locked exactly as {@code placeOrder} locks them, in the same part-id order, so
+     * a cancellation and a sale contending for the same row queue rather than deadlock.
+     *
+     * <p>A stock row that has since been deleted is recreated rather than skipped. Losing the
+     * returned units because the row went away would be the same silent leak by another route.
+     *
+     * @throws IllegalStateException if the order is not PLACED — a fulfilled order has already
+     *     reached the customer, and reversing that is a return, which this schema does not model
+     */
+    @Transactional
+    public CustomerOrder cancel(Long orderId) {
+        CustomerOrder order = orders.findByIdWithItems(orderId)
+                .orElseThrow(() -> NotFoundException.of("order", orderId));
+
+        order.cancel();   // refuses anything already FULFILLED or CANCELLED
+
+        Map<Long, Integer> returning = new LinkedHashMap<>();
+        order.getItems().forEach(i -> returning.merge(i.getPart().getId(), i.getQuantity(), Integer::sum));
+
+        Warehouse warehouse = order.getWarehouse();
+        Map<Long, WarehouseStock> locked = stock
+                .lockForUpdate(warehouse.getId(), returning.keySet().stream().sorted().toList())
+                .stream()
+                .collect(Collectors.toMap(s -> s.getPart().getId(), Function.identity()));
+
+        order.getItems().forEach(item -> {
+            Long partId = item.getPart().getId();
+            WarehouseStock row = locked.get(partId);
+            if (row == null) {
+                stock.save(new WarehouseStock(warehouse, item.getPart(), item.getQuantity()));
+            } else {
+                row.increase(item.getQuantity());
+            }
+        });
+
+        return order;
+    }
+
+    /**
+     * Replaces the lines of an order that has not yet been fulfilled.
+     *
+     * <p>Takes the complete desired set rather than a delta, because a caller saying "make it
+     * five" should not have to know it is currently three. The delta is worked out here, against
+     * rows locked exactly as {@code placeOrder} locks them.
+     *
+     * <p>What moves in each direction:
+     *
+     * <ul>
+     *   <li>an increased or added line takes more stock, and is refused if the warehouse is short
+     *   <li>a reduced or removed line puts stock back
+     *   <li>a line already on the order keeps the {@code unitPrice} it was sold at; a newly added
+     *       part is billed at today's catalogue price
+     * </ul>
+     *
+     * <p>That price rule is the point of amending rather than cancelling and re-placing: the
+     * customer keeps the price they were quoted on what they already ordered.
+     *
+     * @throws IllegalStateException if the order is no longer PLACED — its stock has already
+     *     moved on, and the schema does not model a return
+     * @throws InvalidRequestException if the new set is empty; {@code ct_order_has_lines} would
+     *     refuse it at commit anyway, and a clear message beats a constraint violation
+     */
+    @Transactional
+    public CustomerOrder amendLines(Long orderId, List<PlaceOrderCommand.Line> requested) {
+        CustomerOrder order = orders.findByIdWithItems(orderId)
+                .orElseThrow(() -> NotFoundException.of("order", orderId));
+
+        if (order.getStatus() != OrderStatus.PLACED) {
+            throw new IllegalStateException(
+                    "order " + orderId + " is " + order.getStatus() + " and can no longer be changed");
+        }
+        if (requested == null || requested.isEmpty()) {
+            throw new InvalidRequestException(
+                    "an order must keep at least one line; cancel it instead");
+        }
+
+        Map<Long, Integer> desired = new LinkedHashMap<>();
+        for (PlaceOrderCommand.Line line : requested) {
+            if (line == null || line.partId() == null) {
+                throw new InvalidRequestException("every line must name a part");
+            }
+            if (line.quantity() <= 0) {
+                throw new InvalidRequestException(
+                        "quantity for part " + line.partId() + " must be greater than zero;"
+                                + " omit the line to remove it");
+            }
+            desired.merge(line.partId(), line.quantity(), Integer::sum);
+        }
+
+        Map<Long, Integer> current = new LinkedHashMap<>();
+        order.getItems().forEach(i -> current.merge(i.getPart().getId(), i.getQuantity(), Integer::sum));
+
+        // Every part on either side of the change, so one lock covers the whole amendment.
+        List<Long> touched = Stream.concat(current.keySet().stream(), desired.keySet().stream())
+                .distinct().sorted().toList();
+
+        Map<Long, Part> partsById = loadParts(desired.keySet());
+        Warehouse warehouse = order.getWarehouse();
+        Map<Long, WarehouseStock> locked = stock.lockForUpdate(warehouse.getId(), touched).stream()
+                .collect(Collectors.toMap(s -> s.getPart().getId(), Function.identity()));
+
+        // Check every increase before applying any of them, so a refusal changes nothing.
+        List<InsufficientStockException.Shortage> shortages = new ArrayList<>();
+        desired.forEach((partId, want) -> {
+            int extra = want - current.getOrDefault(partId, 0);
+            if (extra <= 0) {
+                return;
+            }
+            WarehouseStock row = locked.get(partId);
+            int available = row == null ? 0 : row.getQuantity();
+            if (available < extra) {
+                shortages.add(new InsufficientStockException.Shortage(
+                        partId, partsById.get(partId).getSku(), extra, available));
+            }
+        });
+        if (!shortages.isEmpty()) {
+            shortages.sort(Comparator.comparing(InsufficientStockException.Shortage::sku));
+            throw new InsufficientStockException(warehouse.getId(), shortages);
+        }
+
+        applyLineChanges(order, desired, current, partsById);
+        applyStockChanges(order, warehouse, desired, current, locked, partsById);
+        return order;
+    }
+
+    /** Updates, adds and removes the lines themselves. */
+    private void applyLineChanges(CustomerOrder order, Map<Long, Integer> desired,
+                                  Map<Long, Integer> current, Map<Long, Part> partsById) {
+        // Removals first, so the collection is not being grown and shrunk at once.
+        order.getItems().removeIf(item -> !desired.containsKey(item.getPart().getId()));
+
+        desired.forEach((partId, want) -> {
+            if (current.containsKey(partId)) {
+                order.getItems().stream()
+                        .filter(i -> i.getPart().getId().equals(partId))
+                        .findFirst()
+                        .ifPresent(i -> i.setQuantity(want));
+            } else {
+                // New to this order, so billed at what the catalogue says today.
+                order.addLine(partsById.get(partId), want);
+            }
+        });
+    }
+
+    /** Moves stock by the difference, in whichever direction each part went. */
+    private void applyStockChanges(CustomerOrder order, Warehouse warehouse,
+                                   Map<Long, Integer> desired, Map<Long, Integer> current,
+                                   Map<Long, WarehouseStock> locked, Map<Long, Part> partsById) {
+        Stream.concat(current.keySet().stream(), desired.keySet().stream())
+                .distinct()
+                .forEach(partId -> {
+                    int delta = desired.getOrDefault(partId, 0) - current.getOrDefault(partId, 0);
+                    if (delta == 0) {
+                        return;
+                    }
+                    WarehouseStock row = locked.get(partId);
+                    if (row == null) {
+                        // Only reachable when stock is coming back and the row has since gone.
+                        stock.save(new WarehouseStock(warehouse, partsById.get(partId), -delta));
+                    } else if (delta > 0) {
+                        row.decrease(delta);
+                    } else {
+                        row.increase(-delta);
+                    }
+                });
     }
 
     /**
