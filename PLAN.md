@@ -192,10 +192,30 @@ A bug this gate caught: `PartRepository.search()` passed a null search term into
 unfiltered `GET /api/parts` would have failed with *function lower(bytea) does not exist*.
 An absent term now becomes `%`.
 
-### 5 — Services
-- [ ] `OrderService.placeOrder` as one `@Transactional` unit:
+### 5 — Services ✅
+- [x] `OrderService.placeOrder` as one `@Transactional` unit:
       validate → `SELECT … FOR UPDATE` stock → reject if short → capture `unit_price` →
       insert order + items → decrement stock
+
+**Gate:** ✅ ten assertions against a real PostgreSQL 16, including two concurrent orders
+for the last unit where exactly one succeeds.
+
+- **The handler is a method parameter, not a field of `PlaceOrderCommand`.** A request body
+  therefore cannot supply it — step 7 passes it from the session. Structural rather than a
+  rule somebody has to remember.
+- **Duplicate lines are summed before the stock check.** Two lines of three would otherwise
+  be checked as three and then three again, selling six units of a part that had four.
+- **Every shortage is reported, not the first.** One response tells the caller everything
+  they must fix instead of three round trips.
+- **A part with no row in that warehouse reads as zero available**, not "not found" — from
+  the caller's side there is no difference between run out and never stocked. A part id
+  that matches nothing at all is still a 404, checked before the stock comparison.
+- `findBranch` / `findWarehouse` type the query to the subtype, so a warehouse id handed in
+  as the branch simply finds nothing. Same guarantee as `fk_customer_order_branch`, one
+  layer earlier where the error can still be readable.
+
+Exceptions for step 6 to map: `NotFoundException` → 404, `InvalidOrderException` → 400,
+`InsufficientStockException` → 409 carrying every shortage.
 
 ### 6 — REST layer
 - [ ] Controllers returning DTO records
@@ -233,7 +253,13 @@ An absent term now becomes `%`.
 - [ ] Behaviour tests — transferring or deleting a manager vacates the post and the
       department surfaces in `v_department_without_manager`; repricing a part leaves an
       existing order total unmoved
-- [ ] Concurrency test — two orders for the last unit, exactly one succeeds
+- [ ] Concurrency test — two orders for the last unit, exactly one succeeds. Proven by hand
+      at step 5; port it. It must **not** be `@Transactional`: a test-level transaction makes
+      both calls share one, so the row lock is never contended and the test passes while
+      proving nothing.
+- [ ] Port the step-5 order assertions: oversell leaves stock untouched, every shortage is
+      reported, duplicate lines are summed, warehouse staff cannot handle a branch order, a
+      warehouse id given as the branch is a 404
 - [ ] `MockMvc` auth tests — 401 / 403 / 200
 - [ ] JaCoCo report
 
