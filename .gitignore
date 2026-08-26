@@ -33,3 +33,6 @@ Desktop.ini
 *.log
 *.pid
 hs_err_pid*
+
+# Local working notes, not part of the project
+CLAUDE-HANDOFF.md
