@@ -19,7 +19,7 @@
           <mxGeometry y="56" width="220" height="20" as="geometry"/>
         </mxCell>
         <mxCell id="dept" value="&lt;&lt;abstract&gt;&gt;&lt;br/&gt;&lt;b&gt;Department&lt;/b&gt;" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=36;horizontalStack=0;resizeParent=1;resizeParentMax=0;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;collapsible=0;marginBottom=0;" vertex="1" parent="1">
-          <mxGeometry x="340" y="80" width="300" height="184" as="geometry"/>
+          <mxGeometry x="340" y="80" width="300" height="226" as="geometry"/>
         </mxCell>
         <mxCell id="dept-m0" value="# id: Long" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="dept">
           <mxGeometry y="36" width="300" height="20" as="geometry"/>
@@ -45,14 +45,17 @@
         <mxCell id="dept-m6" value="+ headcount(): int" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="dept">
           <mxGeometry y="164" width="300" height="20" as="geometry"/>
         </mxCell>
+        <mxCell id="dept-x0" value="+ promote(Employee): void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="dept">
+          <mxGeometry y="184" width="300" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="dept-x1" value="+ addEmployee(Employee): void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="dept">
+          <mxGeometry y="204" width="300" height="20" as="geometry"/>
+        </mxCell>
         <mxCell id="wh" value="Warehouse" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;collapsible=0;marginBottom=0;" vertex="1" parent="1">
-          <mxGeometry x="250" y="400" width="280" height="66" as="geometry"/>
+          <mxGeometry x="250" y="400" width="280" height="46" as="geometry"/>
         </mxCell>
         <mxCell id="wh-m0" value="- freeAreaSqm: BigDecimal" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="wh">
           <mxGeometry y="26" width="280" height="20" as="geometry"/>
-        </mxCell>
-        <mxCell id="wh-m1" value="- stock: List&lt;WarehouseStock&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="wh">
-          <mxGeometry y="46" width="280" height="20" as="geometry"/>
         </mxCell>
         <mxCell id="br" value="Branch" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;collapsible=0;marginBottom=0;" vertex="1" parent="1">
           <mxGeometry x="580" y="400" width="220" height="46" as="geometry"/>
@@ -61,7 +64,7 @@
           <mxGeometry y="26" width="220" height="20" as="geometry"/>
         </mxCell>
         <mxCell id="emp" value="Employee" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;collapsible=0;marginBottom=0;" vertex="1" parent="1">
-          <mxGeometry x="760" y="80" width="300" height="186" as="geometry"/>
+          <mxGeometry x="760" y="80" width="300" height="226" as="geometry"/>
         </mxCell>
         <mxCell id="emp-m0" value="- id: Long" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="emp">
           <mxGeometry y="26" width="300" height="20" as="geometry"/>
@@ -86,6 +89,12 @@
         </mxCell>
         <mxCell id="emp-m7" value="- hiredOn: LocalDate" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="emp">
           <mxGeometry y="166" width="300" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="emp-x0" value="+ isManager(): boolean" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="emp">
+          <mxGeometry y="186" width="300" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="emp-x1" value="+ transferTo(Department): void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="emp">
+          <mxGeometry y="206" width="300" height="20" as="geometry"/>
         </mxCell>
         <mxCell id="cust" value="Customer" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;collapsible=0;marginBottom=0;" vertex="1" parent="1">
           <mxGeometry x="1160" y="80" width="280" height="106" as="geometry"/>
@@ -142,7 +151,7 @@
           <mxGeometry y="86" width="260" height="20" as="geometry"/>
         </mxCell>
         <mxCell id="part" value="Part" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;collapsible=0;marginBottom=0;" vertex="1" parent="1">
-          <mxGeometry x="360" y="600" width="300" height="226" as="geometry"/>
+          <mxGeometry x="360" y="600" width="300" height="246" as="geometry"/>
         </mxCell>
         <mxCell id="part-m0" value="- id: Long" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="part">
           <mxGeometry y="26" width="300" height="20" as="geometry"/>
@@ -174,6 +183,9 @@
         <mxCell id="part-m8" value="- fitments: List&lt;CarFitment&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="part">
           <mxGeometry y="206" width="300" height="20" as="geometry"/>
         </mxCell>
+        <mxCell id="part-x0" value="+ fitsCar(String,String,short): boolean" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="part">
+          <mxGeometry y="226" width="300" height="20" as="geometry"/>
+        </mxCell>
         <mxCell id="fit" value="CarFitment" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;collapsible=0;marginBottom=0;" vertex="1" parent="1">
           <mxGeometry x="740" y="620" width="280" height="146" as="geometry"/>
         </mxCell>
@@ -196,7 +208,7 @@
           <mxGeometry y="126" width="280" height="20" as="geometry"/>
         </mxCell>
         <mxCell id="stock" value="WarehouseStock" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=13;collapsible=0;marginBottom=0;" vertex="1" parent="1">
-          <mxGeometry x="250" y="940" width="300" height="106" as="geometry"/>
+          <mxGeometry x="250" y="940" width="300" height="146" as="geometry"/>
         </mxCell>
         <mxCell id="stock-m0" value="- id: WarehouseStockId" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="stock">
           <mxGeometry y="26" width="300" height="20" as="geometry"/>
@@ -210,8 +222,14 @@
         <mxCell id="stock-m3" value="- quantity: int" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="stock">
           <mxGeometry y="86" width="300" height="20" as="geometry"/>
         </mxCell>
+        <mxCell id="stock-x0" value="+ decrease(int): void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="stock">
+          <mxGeometry y="106" width="300" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="stock-x1" value="+ hasAtLeast(int): boolean" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="stock">
+          <mxGeometry y="126" width="300" height="20" as="geometry"/>
+        </mxCell>
         <mxCell id="ord" value="CustomerOrder" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=13;collapsible=0;marginBottom=0;" vertex="1" parent="1">
-          <mxGeometry x="700" y="940" width="300" height="214" as="geometry"/>
+          <mxGeometry x="700" y="940" width="300" height="286" as="geometry"/>
         </mxCell>
         <mxCell id="ord-m0" value="- id: Long" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="ord">
           <mxGeometry y="26" width="300" height="20" as="geometry"/>
@@ -242,6 +260,15 @@
         </mxCell>
         <mxCell id="ord-m8" value="+ total(): BigDecimal" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="ord">
           <mxGeometry y="194" width="300" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="ord-x0" value="+ fulfil(): void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="ord">
+          <mxGeometry y="214" width="300" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="ord-x1" value="+ cancel(): void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="ord">
+          <mxGeometry y="234" width="300" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="ord-x2" value="+ addLine(Part, int): OrderItem" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="ord">
+          <mxGeometry y="254" width="300" height="20" as="geometry"/>
         </mxCell>
         <mxCell id="item" value="OrderItem" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=13;collapsible=0;marginBottom=0;" vertex="1" parent="1">
           <mxGeometry x="1100" y="940" width="300" height="154" as="geometry"/>

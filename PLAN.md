@@ -44,8 +44,8 @@ REST API for a car parts retail business.
 | `app_user` | login accounts | nullable `employee_id` names the person behind a login |
 
 Derived values are views, never columns: `v_department_headcount`,
-`v_department_without_manager`, `v_order_total`, `v_low_stock`, and `v_user_identity`
-(in V5, since it reads `app_user`).
+`v_department_without_manager`, `v_order_total`, `v_customer_revenue`, `v_low_stock`, and
+`v_user_identity` (in V5, since it reads `app_user`).
 
 Manager is one of those derived values. There is no `MANAGER` role: `department.manager_id`
 already records who manages what, so `v_user_identity.is_manager` computes it rather than
@@ -80,14 +80,32 @@ storing a second copy that could disagree.
 ### 2 — Schema (Flyway)
 - [x] `V1__core_tables.sql` — enums, department + subtypes, employee, customer, supplier, part
 - [x] `V2__orders_and_stock.sql` — customer_order, order_item, warehouse_stock, car_fitment
-- [x] `V3__constraints_and_indexes.sql` — deferred manager FK, constraint triggers,
-      index on every FK column
+- [x] `V3__constraints_and_indexes.sql` — deferred manager FK, four cross-table rules as
+      constraint triggers, index on every FK column
 - [x] `V4__views.sql` — headcount, departments without a manager, order total, low stock
 - [x] `V5__auth.sql` — app_user
 
 Column CHECKs and UNIQUEs are declared inline on the tables in V1 and V2, not deferred to
 V3, so no window exists in which a table accepts data it should reject. V3 carries only
 what cannot be inline: the circular manager FK, the cross-table triggers, the indexes.
+
+The four rules in V3, each beyond what a CHECK can see:
+
+| Rule | Enforces | Timing |
+|---|---|---|
+| `ct_order_employee_at_branch` | the handler works at the branch that took the order | immediate |
+| `ct_department_manager_membership` | a manager belongs to the department they manage | deferred |
+| `ct_order_status_transition` | only a PLACED order may become FULFILLED or CANCELLED | immediate |
+| `ct_order_has_lines` | an order holds at least one line, the UML's `1..*` | deferred |
+
+`tg_employee_transfer_vacates_post` is an ordinary trigger rather than a constraint one: it
+changes data instead of rejecting it, clearing `manager_id` when a manager transfers away.
+
+`ct_order_has_lines` must be deferred, and that is inherent rather than incidental — a
+header necessarily exists before the lines referencing it, so the question can only be
+asked once the transaction has finished speaking. The consequence is that **V6 must run
+inside a transaction**, which Flyway always provides; replaying it by hand needs
+`psql --single-transaction`.
 
 **Gate:** ✅ drop and re-migrate from empty — V1–V5 apply in order against PostgreSQL 16
 with no errors, and 15 constraint assertions pass: both-subtype department, negative
@@ -126,9 +144,9 @@ Consequences that come with running everywhere:
 - Business rows stay deterministic; only the five hash values differ per environment,
   which is the security property rather than a defect.
 
-### 4 — Domain + repositories
-- [ ] Entities, `@Embeddable Address`, enums, `@Inheritance(JOINED)` on `Department`
-- [ ] **Every enum field needs two annotations**, or `ddl-auto: validate` refuses to start:
+### 4 — Domain + repositories ✅
+- [x] Entities, `@Embeddable Address`, enums, `@Inheritance(JOINED)` on `Department`
+- [x] **Every enum field needs two annotations**, or `ddl-auto: validate` refuses to start:
 
       @Enumerated(EnumType.STRING)
       @JdbcTypeCode(SqlTypes.NAMED_ENUM)
@@ -139,8 +157,40 @@ Consequences that come with running everywhere:
       VALUE` cannot be used in the transaction that adds it, so introducing a new status
       takes two migrations, and removing one means recreating the type. Miss the
       annotation on a single field and start-up fails — the failure is loud, not subtle.
-- [ ] `JpaRepository` per aggregate
-- [ ] `ReportingRepository` — hand-written SQL via `JdbcClient`
+- [x] `JpaRepository` per aggregate — 8 interfaces
+- [x] `ReportingRepository` — `JdbcClient` over the views, rows mapped onto records
+
+**Gate:** ✅ the application starts against a real PostgreSQL 16 with `ddl-auto: validate`,
+so every mapping was checked against the actual schema and every Spring Data query parsed
+at bootstrap.
+
+Decisions worth keeping:
+
+- **No discriminator column on the `Department` hierarchy.** The obvious candidate,
+  `department.type`, is a native enum and `@DiscriminatorColumn` accepts only string, char
+  or integer. `JOINED` already tells subtypes apart by which child table holds the row —
+  the same fact the composite foreign key enforces — so the mapping omits it entirely.
+- **Defaults are set in Java as well as SQL** for `hired_on`, `order_date`, `status`,
+  `created_at`, `reorder_level`. Hibernate sends every mapped column on insert, so a null
+  field writes NULL and trips NOT NULL rather than falling back to the column DEFAULT.
+- **`lockForUpdate` orders by part id.** Two transactions taking the same rows in different
+  orders deadlock; a fixed order means one simply waits. Needed for step 5.
+- **`Warehouse` has no `stock` collection.** Mapping one would let `getStock()` pull every
+  part in the warehouse with no filter or paging, and a serializer could trigger it by
+  accident. `WarehouseStockRepository.findByWarehouseId()` and `v_low_stock` serve it
+  properly. Bounded collections — `Part.fitments`, `Department.employees`,
+  `CustomerOrder.items` — are kept.
+- **Domain methods carry the rules a query cannot**: `fulfil()` / `cancel()` guard the
+  status sequence, `addEmployee()` sets both ends of the association so `headcount()`
+  cannot go stale, and `addLine()` merges a repeated part rather than failing at flush.
+- Derived values exist in Java *and* SQL on purpose. Java acts on objects already loaded —
+  an invoice already holds its lines — while views answer across rows nothing has loaded.
+  The cost is that changing a formula means changing both.
+
+A bug this gate caught: `PartRepository.search()` passed a null search term into
+`LOWER(?)`, and PostgreSQL types an untyped null parameter as `bytea`, so the very first
+unfiltered `GET /api/parts` would have failed with *function lower(bytea) does not exist*.
+An absent term now becomes `%`.
 
 ### 5 — Services
 - [ ] `OrderService.placeOrder` as one `@Transactional` unit:
@@ -212,9 +262,11 @@ PATCH  /api/departments/{id}          set managerId
 CRUD   /api/{employees,customers,suppliers,departments}
 ```
 
-`revenue-by-customer` has no view behind it — it is hand-written SQL in
-`ReportingRepository`. A `v_customer_balance` view was dropped: with no payments table it
-could only ever report total ordered, and calling that a balance invites misreading.
+`revenue-by-customer` reads `v_customer_revenue`. It reports revenue the shop earned from a
+customer, not money they hold or owe — the schema has no payments table and cannot know
+what anyone owes. It was briefly named `v_customer_balance`, which invited exactly that
+misreading; "balance" becomes honest only once a payment table exists and the figure
+becomes ordered minus paid.
 
 ## Acceptance
 
