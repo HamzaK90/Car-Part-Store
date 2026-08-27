@@ -132,7 +132,45 @@ public final class Requests {
      */
     public record SetManagerRequest(Long managerId) {}
 
-    /** Adding a part to the catalogue, or replacing one wholesale. */
+    /**
+     * Changing a part. Every field is optional; a null leaves that field as it was.
+     *
+     * <p>There is no {@code sku}. It is the identifier customers quote, suppliers match on and
+     * invoices print — order lines already issued display it — so editing it silently rewrites
+     * what those documents appear to say. A part with the wrong SKU is a new part.
+     */
+    public record UpdatePartRequest(
+            @Size(max = 100) String name,
+            @PositiveOrZero(message = "price cannot be negative") BigDecimal price,
+            @DecimalMin(value = "0.01", message = "weight must be greater than zero") BigDecimal weightKg,
+            String description,
+            @Size(max = 100) String manufacturingPlace,
+            @PositiveOrZero(message = "reorder level cannot be negative") Integer reorderLevel,
+            Long supplierId) {}
+
+    /**
+     * Recording that a part fits a car.
+     *
+     * <p>{@code yearFrom} is part of the fitment's identity, so the same make, model and starting
+     * year cannot be recorded twice. {@code yearTo} is the one detail that can be corrected
+     * without making it a different fitment.
+     */
+    public record FitmentRequest(
+            @NotBlank @Size(max = 50) String make,
+            @NotBlank @Size(max = 50) String model,
+            @NotNull(message = "a fitment must state the first model year it covers") Short yearFrom,
+            @NotNull(message = "a fitment must state the last model year it covers") Short yearTo) {}
+
+    /**
+     * Correcting how long a fitment runs.
+     *
+     * <p>Only the last model year. The rest of a fitment is its primary key, so changing any of
+     * it makes a different fitment.
+     */
+    public record CorrectFitmentRequest(
+            @NotNull(message = "state the last model year the fitment covers") Short yearTo) {}
+
+    /** Adding a part to the catalogue. */
     public record PartRequest(
             @NotBlank @Size(max = 32) String sku,
             @NotBlank @Size(max = 100) String name,

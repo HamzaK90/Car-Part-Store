@@ -66,7 +66,31 @@ public class ApiExceptionHandler {
                     "only an order still PLACED can be fulfilled or cancelled"),
             Map.entry("ct_order_has_lines", "an order must contain at least one line"),
             Map.entry("fk_employee_department", "that department does not exist"),
-            Map.entry("fk_part_supplier", "that supplier does not exist"));
+            Map.entry("fk_part_supplier", "that supplier does not exist"),
+
+            // Foreign keys refusing a delete. Each of these means "something still points at
+            // this", and the useful part of the message is what that something is — otherwise a
+            // caller is told only that their delete conflicted, with no way to act on it.
+            Map.entry("fk_warehouse_stock_part",
+                    "that part is still stocked in a warehouse; clear the stock first"),
+            Map.entry("fk_order_item_part",
+                    "that part appears on an existing order and cannot be removed"),
+            Map.entry("fk_car_fitment_part", "that part still has car fitments recorded"),
+            Map.entry("fk_warehouse_stock_warehouse",
+                    "that warehouse still holds stock; clear it first"),
+            Map.entry("fk_customer_order_customer",
+                    "that customer has orders and cannot be removed"),
+            Map.entry("fk_customer_order_branch",
+                    "that branch has orders taken at it and cannot be removed"),
+            Map.entry("fk_customer_order_warehouse",
+                    "that warehouse has filled orders and cannot be removed"),
+            Map.entry("fk_customer_order_employee", "that employee handled an existing order"),
+            Map.entry("fk_order_item_order", "that order still has lines"),
+            Map.entry("fk_department_manager", "that employee manages a department"),
+            Map.entry("fk_branch_department", "that branch record is still attached to a department"),
+            Map.entry("fk_warehouse_department",
+                    "that warehouse record is still attached to a department"),
+            Map.entry("fk_app_user_employee", "that employee has a login account"));
 
     @ExceptionHandler(NotFoundException.class)
     public ProblemDetail onNotFound(NotFoundException e) {
