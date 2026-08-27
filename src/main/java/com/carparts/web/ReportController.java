@@ -41,8 +41,6 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Reports", description = "Derived figures, computed on read")
 public class ReportController {
 
-    private static final int MAX_PAGE_SIZE = 100;
-
     private final ReportingRepository reporting;
 
     public ReportController(ReportingRepository reporting) {
@@ -66,8 +64,8 @@ public class ReportController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
 
-        int limit = Math.clamp(size, 1, MAX_PAGE_SIZE);
-        int number = Math.max(page, 0);
+        int limit = Paging.size(size);
+        int number = Paging.number(page);
 
         List<CustomerRevenue> content = reporting.revenueByCustomer(limit, (long) number * limit);
         return new PageImpl<>(content, PageRequest.of(number, limit), reporting.countCustomers());
@@ -88,8 +86,8 @@ public class ReportController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
 
-        int limit = Math.clamp(size, 1, MAX_PAGE_SIZE);
-        int number = Math.max(page, 0);
+        int limit = Paging.size(size);
+        int number = Paging.number(page);
 
         List<LowStock> content = reporting.lowStock(limit, (long) number * limit);
         return new PageImpl<>(content, PageRequest.of(number, limit), reporting.countLowStock());

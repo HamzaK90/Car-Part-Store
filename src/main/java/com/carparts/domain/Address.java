@@ -1,5 +1,6 @@
 package com.carparts.domain;
 
+import com.carparts.support.Text;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import java.util.Objects;
@@ -26,9 +27,27 @@ public class Address {
         // for JPA
     }
 
+    /**
+     * Blank parts are stored as null, so "no city" has one representation rather than two — a
+     * caller who sends {@code ""} and one who omits the field produce the same row.
+     */
     public Address(String city, String street) {
-        this.city = city;
-        this.street = street;
+        this.city = Text.blankToNull(city);
+        this.street = Text.blankToNull(street);
+    }
+
+    /**
+     * This address with only the parts named replaced.
+     *
+     * <p>An address is one embedded value, not two columns that move independently: a PATCH
+     * naming only the city must carry the existing street through rather than writing null over
+     * it. Doing that at each call site meant the same four-way null dance written out per
+     * service. {@code current} may be null, for something that has never had an address.
+     */
+    public static Address merged(Address current, String city, String street) {
+        return new Address(
+                city != null ? city : (current == null ? null : current.getCity()),
+                street != null ? street : (current == null ? null : current.getStreet()));
     }
 
     public String getCity() {

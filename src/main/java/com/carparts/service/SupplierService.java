@@ -26,7 +26,7 @@ public class SupplierService {
     @Transactional
     public Supplier create(String name, String city, String street, String phoneNumber) {
         Supplier supplier = new Supplier(name);
-        supplier.setAddress(new Address(Text.blankToNull(city), Text.blankToNull(street)));
+        supplier.setAddress(new Address(city, street));
         supplier.setPhoneNumber(Text.blankToNull(phoneNumber));
         return suppliers.save(supplier);
     }
@@ -50,12 +50,7 @@ public class SupplierService {
         if (city != null || street != null) {
             // The address is one embedded value, not two columns that move independently: a
             // request naming only the city would otherwise erase the street it did not mention.
-            Address current = supplier.getAddress();
-            supplier.setAddress(new Address(
-                    Text.blankToNull(city != null ? city
-                            : (current == null ? null : current.getCity())),
-                    Text.blankToNull(street != null ? street
-                            : (current == null ? null : current.getStreet()))));
+            supplier.setAddress(Address.merged(supplier.getAddress(), city, street));
         }
         return supplier;
     }

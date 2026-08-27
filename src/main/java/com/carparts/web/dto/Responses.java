@@ -157,6 +157,21 @@ public final class Responses {
         }
     }
 
+    /**
+     * A completed transfer, showing both ends.
+     *
+     * <p>{@code StockResponse} names no warehouse, so returning one side of a move left the
+     * caller holding a quantity with no way to tell whose it was. Both rows come back, each one
+     * saying where it is.
+     */
+    public record TransferResponse(PartLocationResponse from, PartLocationResponse to) {
+
+        public static TransferResponse of(WarehouseStock source, WarehouseStock destination) {
+            return new TransferResponse(
+                    PartLocationResponse.from(source), PartLocationResponse.from(destination));
+        }
+    }
+
     // ---------------------------------------------------------------- people and places
 
     public record CustomerResponse(Long id, String name, String phoneNumber, String email) {

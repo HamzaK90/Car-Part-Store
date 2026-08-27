@@ -49,8 +49,6 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Orders", description = "Placing, amending and reading orders")
 public class OrderController {
 
-    private static final int MAX_PAGE_SIZE = 100;
-
     private final OrderService orderService;
     private final CustomerOrderRepository orders;
     private final ReportingRepository reporting;
@@ -122,8 +120,8 @@ public class OrderController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
 
-        int limit = Math.clamp(size, 1, MAX_PAGE_SIZE);
-        int number = Math.max(page, 0);
+        int limit = Paging.size(size);
+        int number = Paging.number(page);
 
         OrderFilter filter = new OrderFilter(
                 status, branchId, warehouseId, customerId, employeeId, partId,

@@ -126,9 +126,19 @@ public class StockService {
      *     not positive
      * @throws InsufficientStockException if the source cannot cover the move
      */
+    /**
+     * Both sides of a completed transfer.
+     *
+     * <p>Returning only one of them was ambiguous to the point of being useless: the caller
+     * addressed the source warehouse and got back a bare quantity belonging to the destination,
+     * with nothing in the response naming which warehouse it described. A move has two ends and
+     * the answer should show both.
+     */
+    public record Transferred(WarehouseStock source, WarehouseStock destination) {}
+
     @Transactional
-    public WarehouseStock transfer(Long fromWarehouseId, Long toWarehouseId,
-                                   Long partId, int quantity) {
+    public Transferred transfer(Long fromWarehouseId, Long toWarehouseId,
+                                Long partId, int quantity) {
         if (quantity <= 0) {
             throw new InvalidRequestException("a transfer must move at least one unit");
         }
@@ -157,10 +167,12 @@ public class StockService {
 
         WarehouseStock destination = locked.get(toWarehouseId);
         if (destination == null) {
-            return stock.save(new WarehouseStock(to, part, quantity));
+            // The destination has never carried this part; the row is created by the move.
+            destination = stock.save(new WarehouseStock(to, part, quantity));
+        } else {
+            destination.increase(quantity);
         }
-        destination.increase(quantity);
-        return destination;
+        return new Transferred(source, destination);
     }
 
     private Warehouse warehouse(Long id) {

@@ -10,13 +10,14 @@ import com.carparts.web.dto.Requests.StockCountRequest;
 import com.carparts.web.dto.Requests.TransferStockRequest;
 import com.carparts.web.dto.Responses.PartLocationResponse;
 import com.carparts.web.dto.Responses.StockResponse;
+import com.carparts.web.dto.Responses.TransferResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -39,8 +40,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 @Tag(name = "Stock", description = "What each warehouse holds, and moving it about")
 public class WarehouseController {
-
-    private static final int MAX_PAGE_SIZE = 100;
 
     private final WarehouseStockRepository stock;
     private final DepartmentRepository departments;
@@ -79,8 +78,7 @@ public class WarehouseController {
         if (departments.findWarehouse(id).isEmpty()) {
             throw NotFoundException.of("warehouse", id);
         }
-        PageRequest pageable = PageRequest.of(
-                Math.max(page, 0), Math.clamp(size, 1, MAX_PAGE_SIZE), Sort.by("part.sku"));
+        Pageable pageable = Paging.of(page, size, Sort.by("part.sku"), "part.id");
 
         return stock.findByWarehouse(id, lowOnly, pageable).map(StockResponse::from);
     }
@@ -126,14 +124,18 @@ public class WarehouseController {
      * recording that they existed.
      *
      * <p>409 with the shortfall if the source cannot cover it; nothing moves.
+     *
+     * <p>Both ends come back. Returning one of them meant the caller addressed this warehouse
+     * and received a quantity belonging to the other, with nothing in the body saying which.
      */
     @PostMapping("/warehouses/{id}/stock/transfer")
     @Operation(summary = "Transfer stock to another warehouse",
-               description = "Atomic: both sides move together or neither does.")
-    public StockResponse transfer(
+               description = "Atomic: both sides move together or neither does. Returns both rows.")
+    public TransferResponse transfer(
             @PathVariable Long id, @Valid @RequestBody TransferStockRequest request) {
-        return StockResponse.from(stockService.transfer(
-                id, request.toWarehouseId(), request.partId(), request.quantity()));
+        StockService.Transferred moved = stockService.transfer(
+                id, request.toWarehouseId(), request.partId(), request.quantity());
+        return TransferResponse.of(moved.source(), moved.destination());
     }
 
     /**
