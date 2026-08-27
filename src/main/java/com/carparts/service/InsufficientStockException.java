@@ -36,10 +36,14 @@ public class InsufficientStockException extends RuntimeException {
         return shortages;
     }
 
+    /**
+     * Worded without naming an order, because this is raised by transfers too. "Cannot cover
+     * this order" reads as a bug when the caller was moving stock between warehouses.
+     */
     private static String describe(Long warehouseId, List<Shortage> shortages) {
         StringBuilder sb = new StringBuilder("warehouse ")
                 .append(warehouseId)
-                .append(" cannot cover this order: ");
+                .append(" does not hold enough: ");
         for (int i = 0; i < shortages.size(); i++) {
             Shortage s = shortages.get(i);
             if (i > 0) {

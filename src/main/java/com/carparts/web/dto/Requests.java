@@ -210,6 +210,17 @@ public final class Requests {
             @Positive(message = "a delivery must be of at least one unit")
             int quantity) {}
 
+    /**
+     * Moving units from one warehouse to another.
+     *
+     * <p>One request rather than a decrease here and an increase there, because two calls can
+     * half-fail and the units simply vanish.
+     */
+    public record TransferStockRequest(
+            @NotNull(message = "name the warehouse receiving the units") Long toWarehouseId,
+            @NotNull(message = "name the part being moved") Long partId,
+            @Positive(message = "a transfer must move at least one unit") int quantity) {}
+
     /** Setting a stock level outright, after a physical count. */
     public record StockCountRequest(
             @PositiveOrZero(message = "a stock count cannot be negative")
