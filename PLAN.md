@@ -232,7 +232,7 @@ invisible until the category was looked at by itself.
 | warehouses + stock | 6 | ✅ |
 | departments | 5 | ✅ |
 | employees | 6 | ✅ |
-| customers + suppliers | | not started |
+| customers + suppliers | 10 | ✅ |
 | reports | | not started |
 | `docs/api.md`, `docs/api-roadmap.md` | | held for the final PR, when they describe endpoints that exist |
 
@@ -265,6 +265,12 @@ Decisions worth keeping:
   with one is dozens of queries.
 - **PATCH, not PUT.** A full-object update means two people editing different fields each send a
   complete object built from a stale read, and the second silently overwrites the first.
+- **A service exists to own the transaction, not to forward calls.** Customers and suppliers are
+  plain CRUD with no business rules, which argues against a service layer — but with
+  `open-in-view` disabled and no `@Transactional` on controllers, a read-modify-write driven
+  from a controller loads a *detached* entity and the mutation is silently discarded, with no
+  error and no row changed. The boundary has to live somewhere, and owning it is real behaviour
+  rather than indirection.
 - **A change with a side effect gets its own endpoint.** Moving an employee vacates any manager
   post they held, so `departmentId` is deliberately absent from `PATCH /api/employees/{id}` and
   transferring is `PATCH /api/employees/{id}/department/{departmentId}`. Allowing it as a field

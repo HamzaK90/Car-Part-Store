@@ -2,6 +2,7 @@ package com.carparts.web.dto;
 
 import com.carparts.domain.DepartmentType;
 import com.carparts.domain.ShiftType;
+import com.carparts.support.Text;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Email;
@@ -72,13 +73,53 @@ public final class Requests {
             @Positive(message = "quantity must be greater than zero")
             int quantity) {}
 
+    /**
+     * Registering a customer.
+     *
+     * <p>The compact constructor blanks the email to null, and it has to happen <em>here</em>
+     * rather than in the service: {@code @Email} accepts null and {@code ""} but rejects
+     * {@code "   "}, so without this a caller who sent an untouched form field got a 400 or a
+     * 201 depending on whether their browser happened to trim it. Both mean "no email".
+     */
     public record CreateCustomerRequest(
             @NotBlank @Size(max = 100) String name,
             @NotBlank @Size(max = 20) String phoneNumber,
-            @Email @Size(max = 255) String email) {}
+            @Email @Size(max = 255) String email) {
+
+        public CreateCustomerRequest {
+            email = Text.blankToNull(email);
+        }
+    }
 
     public record CreateSupplierRequest(
             @NotBlank @Size(max = 100) String name,
+            @Size(max = 50) String city,
+            @Size(max = 100) String street,
+            @Size(max = 20) String phoneNumber) {}
+
+    /**
+     * Changing a customer. Every field is optional; a null leaves that field as it was.
+     *
+     * <p>PATCH rather than PUT for the reason set out on {@link UpdatePartRequest}: a full
+     * object means two people editing different things each resend everything they read, and
+     * the second silently undoes the first.
+     */
+    public record UpdateCustomerRequest(
+            @Size(max = 100) String name,
+            @Size(max = 20) String phoneNumber,
+            @Email @Size(max = 255) String email) {
+
+        // Normalised before validation, as on CreateCustomerRequest. Note this makes a blank
+        // email indistinguishable from an omitted one, so it cannot clear an address here —
+        // see CustomerService.update.
+        public UpdateCustomerRequest {
+            email = Text.blankToNull(email);
+        }
+    }
+
+    /** Changing a supplier. Every field is optional; a null leaves that field as it was. */
+    public record UpdateSupplierRequest(
+            @Size(max = 100) String name,
             @Size(max = 50) String city,
             @Size(max = 100) String street,
             @Size(max = 20) String phoneNumber) {}

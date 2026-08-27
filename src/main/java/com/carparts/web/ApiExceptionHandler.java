@@ -65,8 +65,6 @@ public class ApiExceptionHandler {
             Map.entry("ct_order_status_transition",
                     "only an order still PLACED can be fulfilled or cancelled"),
             Map.entry("ct_order_has_lines", "an order must contain at least one line"),
-            Map.entry("fk_part_supplier", "that supplier does not exist"),
-
             // Foreign keys refusing a delete. Each of these means "something still points at
             // this", and the useful part of the message is what that something is — otherwise a
             // caller is told only that their delete conflicted, with no way to act on it.
@@ -81,6 +79,9 @@ public class ApiExceptionHandler {
             // had staff — a refusal that contradicted itself.
             Map.entry("fk_employee_department",
                     "that department still has employees; transfer or remove them first"),
+            Map.entry("fk_part_supplier",
+                    "parts in the catalogue still come from that supplier; a part must have one, "
+                            + "so reassign or remove those parts first"),
             Map.entry("fk_warehouse_stock_part",
                     "that part is still stocked in a warehouse; clear the stock first"),
             Map.entry("fk_order_item_part",
