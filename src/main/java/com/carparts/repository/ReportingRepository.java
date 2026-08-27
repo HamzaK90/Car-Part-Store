@@ -136,12 +136,27 @@ public class ReportingRepository {
                 .list();
     }
 
-    /** True when this department has nobody in charge — the check behind the promotion prompt. */
-    public boolean hasNoManager(Long departmentId) {
-        return jdbc.sql("SELECT EXISTS (SELECT 1 FROM v_department_without_manager WHERE department_id = ?)")
+    /**
+     * The vacancy at one department, or empty when it has a manager.
+     *
+     * <p>The check behind the promotion prompt on hiring. Deliberately a lookup by id rather
+     * than reading {@link #departmentsWithoutManager()} and filtering in Java: that would fetch
+     * every headless department in the business to answer a question about one of them, and it
+     * would get slower as the company grew and more posts stood empty.
+     *
+     * <p>It replaces a {@code hasNoManager} that returned only a boolean. The caller needs the
+     * eligible-employee count in the same breath — "nobody to promote" and "here are four" are
+     * different answers — so returning the row costs nothing and saves a second question.
+     */
+    public Optional<DepartmentWithoutManager> vacancyFor(Long departmentId) {
+        return jdbc.sql("""
+                SELECT department_id, name, type, eligible_employees
+                FROM v_department_without_manager
+                WHERE department_id = ?
+                """)
                 .param(departmentId)
-                .query(Boolean.class)
-                .single();
+                .query(DepartmentWithoutManager.class)
+                .optional();
     }
 
     /** Worst shortfalls first, so the top of the list is what to reorder now. */

@@ -105,6 +105,27 @@ public final class Requests {
             LocalDate hiredOn) {}
 
     /**
+     * Changing an employee's own details. Every field is optional; a null leaves it as it was.
+     *
+     * <p>There is no {@code departmentId}. Moving somebody is not a field edit — it vacates any
+     * manager post they held, on both sides of the association and in the database — so it has
+     * its own endpoint where that is visible. Allowing it here would let a transfer happen as a
+     * side effect of correcting a name, bypassing {@code Employee.transferTo} entirely.
+     */
+    public record UpdateEmployeeRequest(
+            @Size(max = 100) String fullName,
+
+            @DecimalMin(value = "0.01", message = "salary must be greater than zero")
+            BigDecimal salary,
+
+            @Past(message = "a birthdate must be in the past")
+            LocalDate birthdate,
+
+            @Size(max = 50) String city,
+            @Size(max = 100) String street,
+            ShiftType workShift) {}
+
+    /**
      * Creating a department.
      *
      * <p>{@code freeAreaSqm} applies only to a warehouse. A branch that supplies it, or a

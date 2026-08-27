@@ -231,7 +231,7 @@ invisible until the category was looked at by itself.
 | parts | 7 | ✅ |
 | warehouses + stock | 6 | ✅ |
 | departments | 5 | ✅ |
-| employees | | not started |
+| employees | 6 | ✅ |
 | customers + suppliers | | not started |
 | reports | | not started |
 | `docs/api.md`, `docs/api-roadmap.md` | | held for the final PR, when they describe endpoints that exist |
@@ -240,10 +240,12 @@ invisible until the category was looked at by itself.
 - [x] `@ControllerAdvice` → RFC 7807 `ProblemDetail`
 - [x] Bean Validation on request bodies
 - [x] springdoc-openapi at `/swagger-ui`
-- [ ] After `POST /api/employees`, if the department has no manager, the response says so
+- [x] After `POST /api/employees`, if the department has no manager, the response says so
       and offers the new employee as a candidate — read from `v_department_without_manager`,
       whose `eligible_employees` distinguishes "nobody to promote" from "here are four".
       Accepting is a separate `PATCH /api/departments/{id}` with `managerId`.
+      Read by department id rather than by listing every vacancy and filtering, which would
+      fetch the whole company's headless departments to answer a question about one.
 - [ ] `GET /api/reports/departments-without-manager` — the standing vacancy alert an `ADMIN`
       works through. A manager who transfers or leaves vacates the post silently, so this is
       the only thing that surfaces it.
@@ -263,6 +265,12 @@ Decisions worth keeping:
   with one is dozens of queries.
 - **PATCH, not PUT.** A full-object update means two people editing different fields each send a
   complete object built from a stale read, and the second silently overwrites the first.
+- **A change with a side effect gets its own endpoint.** Moving an employee vacates any manager
+  post they held, so `departmentId` is deliberately absent from `PATCH /api/employees/{id}` and
+  transferring is `PATCH /api/employees/{id}/department/{departmentId}`. Allowing it as a field
+  would let a transfer happen as a side effect of correcting a name, bypassing
+  `Employee.transferTo` and the vacancy it is responsible for. For the same reason an address is
+  patched as one embedded value: a request naming only the city must not erase the street.
 - **A foreign key fires in two directions and only one reaches the error handler.** Naming a
   parent that does not exist is caught in Java first — every service resolves its parent with
   `findById().orElseThrow(NotFoundException)` — so what reaches `ApiExceptionHandler` is always
