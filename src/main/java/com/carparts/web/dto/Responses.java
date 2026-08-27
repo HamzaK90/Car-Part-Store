@@ -134,6 +134,29 @@ public final class Responses {
         }
     }
 
+    /**
+     * Where a part can be found: one row per warehouse holding it.
+     *
+     * <p>Warehouses holding none are left out — somewhere with zero is not somewhere to send a
+     * picker.
+     */
+    public record PartLocationResponse(
+            Long warehouseId,
+            String warehouseName,
+            String city,
+            int quantity,
+            int reorderLevel,
+            boolean low) {
+
+        public static PartLocationResponse from(WarehouseStock s) {
+            Warehouse w = s.getWarehouse();
+            return new PartLocationResponse(
+                    w.getId(), w.getName(),
+                    w.getAddress() == null ? null : w.getAddress().getCity(),
+                    s.getQuantity(), s.getPart().getReorderLevel(), s.isLow());
+        }
+    }
+
     // ---------------------------------------------------------------- people and places
 
     public record CustomerResponse(Long id, String name, String phoneNumber, String email) {

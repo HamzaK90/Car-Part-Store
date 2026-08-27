@@ -26,9 +26,9 @@ public class Warehouse extends Department {
     // every part the warehouse holds — thousands of rows in a real one — with no filter, no
     // paging and no way to stop a serializer or a debugger triggering it by accident.
     //
-    // The rows are still there and still reachable: WarehouseStockRepository.findByWarehouseId()
-    // for a listing, and v_low_stock via ReportingRepository.lowStock() for the report. Both
-    // can filter and page, which a mapped collection cannot.
+    // The rows are still there and still reachable: WarehouseStockRepository.findByWarehouse()
+    // for a paged listing, and v_low_stock via ReportingRepository.lowStock() for the report.
+    // Both can filter and page, which a mapped collection cannot.
     //
     // The other direction stays: WarehouseStock.warehouse is a single reference, which is cheap
     // and required by @MapsId.
