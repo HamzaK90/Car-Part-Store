@@ -219,10 +219,27 @@ Exceptions for step 6 to map: `NotFoundException` → 404, `InvalidOrderExceptio
 `InsufficientStockException` → 409 carrying every shortage.
 
 ### 6 — REST layer
-- [ ] Controllers returning DTO records
-- [ ] `@ControllerAdvice` → RFC 7807 `ProblemDetail`
-- [ ] Bean Validation on request bodies
-- [ ] springdoc-openapi at `/swagger-ui`
+
+Delivered one API category at a time, each reviewed before it is committed. Splitting it this
+way is what let each category be measured on its own; three of the four defects below were
+invisible until the category was looked at by itself.
+
+| Category | Endpoints | State |
+|---|---|---|
+| foundation — error handling, DTOs, OpenAPI, interim security | — | ✅ |
+| orders | 5 | ✅ |
+| parts | 7 | ✅ |
+| warehouses + stock | 6 | ✅ |
+| departments | 5 | ✅ |
+| employees | | not started |
+| customers + suppliers | | not started |
+| reports | | not started |
+| `docs/api.md`, `docs/api-roadmap.md` | | held for the final PR, when they describe endpoints that exist |
+
+- [x] Controllers returning DTO records
+- [x] `@ControllerAdvice` → RFC 7807 `ProblemDetail`
+- [x] Bean Validation on request bodies
+- [x] springdoc-openapi at `/swagger-ui`
 - [ ] After `POST /api/employees`, if the department has no manager, the response says so
       and offers the new employee as a candidate — read from `v_department_without_manager`,
       whose `eligible_employees` distinguishes "nobody to promote" from "here are four".
@@ -230,6 +247,28 @@ Exceptions for step 6 to map: `NotFoundException` → 404, `InvalidOrderExceptio
 - [ ] `GET /api/reports/departments-without-manager` — the standing vacancy alert an `ADMIN`
       works through. A manager who transfers or leaves vacates the post silently, so this is
       the only thing that surfaces it.
+
+Decisions worth keeping:
+
+- **No `@Transactional` on a controller.** `open-in-view` is disabled, and putting a transaction
+  on a controller reinstates open-session-in-view by hand: it hides an N+1 behind serialization,
+  holds a connection for the duration of the network write, and turns a failure into a broken
+  body behind an already-sent `200`. The controller is handed complete data instead — a fetch
+  join, or flat rows from `JdbcClient`.
+- **Every listing is paged and capped.** A bare `List` return type is the tell. Each category has
+  had exactly one N+1 in its listing and each was invisible on demo data, so a list query is
+  counted at the database against realistic cardinality before the category is called done.
+- **Entities are never serialised.** DTO records only, or a lazy association resolves while the
+  response is being written — which without a session is a `LazyInitializationException`, and
+  with one is dozens of queries.
+- **PATCH, not PUT.** A full-object update means two people editing different fields each send a
+  complete object built from a stale read, and the second silently overwrites the first.
+- **A foreign key fires in two directions and only one reaches the error handler.** Naming a
+  parent that does not exist is caught in Java first — every service resolves its parent with
+  `findById().orElseThrow(NotFoundException)` — so what reaches `ApiExceptionHandler` is always
+  the delete direction. `fk_employee_department` had been worded for the other one, and closing a
+  department that still had staff returned a `409` reading *"that department does not exist"*.
+  Each constraint message describes the direction it can actually be seen in.
 
 ### 7 — Security
 - [ ] `SecurityFilterChain`, stateless, `JwtAuthFilter`, BCrypt cost 12
