@@ -119,6 +119,29 @@ public class PartService {
         return fitments.save(new CarFitment(part, make, model, yearFrom, yearTo));
     }
 
+    /**
+     * Corrects the last model year a fitment covers.
+     *
+     * <p>Only {@code yearTo} can change, and that is the schema talking rather than a limitation:
+     * the part, make, model and first year make up the primary key, so altering any of them makes
+     * it a different fitment. {@code yearTo} is the one detail that can be wrong without the
+     * fitment itself being wrong — a model stays in production a year longer than expected.
+     */
+    @Transactional
+    public CarFitment correctFitmentEnd(Long partId, String make, String model,
+                                        Short yearFrom, Short yearTo) {
+        CarFitment fitment = fitments.findById(new CarFitmentId(partId, make, model, yearFrom))
+                .orElseThrow(() -> new NotFoundException(
+                        "no fitment for " + make + " " + model + " from " + yearFrom
+                                + " on part " + partId));
+        if (yearTo < yearFrom) {
+            throw new InvalidRequestException(
+                    "the last model year (" + yearTo + ") cannot precede the first (" + yearFrom + ")");
+        }
+        fitment.setYearTo(yearTo);
+        return fitment;
+    }
+
     /** Removes a fitment. Identified by the same three fields that key it. */
     @Transactional
     public void removeFitment(Long partId, String make, String model, Short yearFrom) {

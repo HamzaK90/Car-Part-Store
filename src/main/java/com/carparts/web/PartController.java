@@ -4,6 +4,7 @@ import com.carparts.domain.Part;
 import com.carparts.repository.PartRepository;
 import com.carparts.service.NotFoundException;
 import com.carparts.service.PartService;
+import com.carparts.web.dto.Requests.CorrectFitmentRequest;
 import com.carparts.web.dto.Requests.FitmentRequest;
 import com.carparts.web.dto.Requests.PartRequest;
 import com.carparts.web.dto.Requests.UpdatePartRequest;
@@ -134,6 +135,27 @@ public class PartController {
         FitmentResponse created = FitmentResponse.from(service.addFitment(
                 id, request.make(), request.model(), request.yearFrom(), request.yearTo()));
         return ResponseEntity.created(URI.create("/api/parts/" + id + "/fitments")).body(created);
+    }
+
+    /**
+     * Corrects the last model year a fitment covers.
+     *
+     * <p>Only {@code yearTo} is changeable, because the part, make, model and first year are the
+     * fitment's primary key — altering any of those makes it a different fitment, which is a
+     * DELETE and a POST. A model staying in production a year longer than expected is the case
+     * this exists for.
+     */
+    @PatchMapping("/{id}/fitments")
+    @Operation(summary = "Correct a fitment's last model year",
+               description = "Only yearTo can change; the other fields are the fitment's identity.")
+    public FitmentResponse correctFitment(
+            @PathVariable Long id,
+            @RequestParam String make,
+            @RequestParam String model,
+            @RequestParam Short yearFrom,
+            @Valid @RequestBody CorrectFitmentRequest request) {
+        return FitmentResponse.from(
+                service.correctFitmentEnd(id, make, model, yearFrom, request.yearTo()));
     }
 
     /** Removes a fitment, identified by the three fields that key it. */

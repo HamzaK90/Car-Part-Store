@@ -161,6 +161,15 @@ public final class Requests {
             @NotNull(message = "a fitment must state the first model year it covers") Short yearFrom,
             @NotNull(message = "a fitment must state the last model year it covers") Short yearTo) {}
 
+    /**
+     * Correcting how long a fitment runs.
+     *
+     * <p>Only the last model year. The rest of a fitment is its primary key, so changing any of
+     * it makes a different fitment.
+     */
+    public record CorrectFitmentRequest(
+            @NotNull(message = "state the last model year the fitment covers") Short yearTo) {}
+
     /** Adding a part to the catalogue. */
     public record PartRequest(
             @NotBlank @Size(max = 32) String sku,
