@@ -233,7 +233,7 @@ invisible until the category was looked at by itself.
 | departments | 5 | ✅ |
 | employees | 6 | ✅ |
 | customers + suppliers | 10 | ✅ |
-| reports | | not started |
+| reports | 4 | ✅ |
 | `docs/api.md`, `docs/api-roadmap.md` | | held for the final PR, when they describe endpoints that exist |
 
 - [x] Controllers returning DTO records
@@ -246,7 +246,7 @@ invisible until the category was looked at by itself.
       Accepting is a separate `PATCH /api/departments/{id}` with `managerId`.
       Read by department id rather than by listing every vacancy and filtering, which would
       fetch the whole company's headless departments to answer a question about one.
-- [ ] `GET /api/reports/departments-without-manager` — the standing vacancy alert an `ADMIN`
+- [x] `GET /api/reports/departments-without-manager` — the standing vacancy alert an `ADMIN`
       works through. A manager who transfers or leaves vacates the post silently, so this is
       the only thing that surfaces it.
 
@@ -257,6 +257,12 @@ Decisions worth keeping:
   holds a connection for the duration of the network write, and turns a failure into a broken
   body behind an already-sent `200`. The controller is handed complete data instead — a fetch
   join, or flat rows from `JdbcClient`.
+- **Paging is a claim about cardinality, not a habit.** Two of the four reports are pages and
+  two are plain lists, deliberately. Headcount and vacancies have a row per *department* — a
+  company's physical locations, counted in dozens. Revenue has a row per *customer* and low
+  stock a row per warehouse-and-part; both grow with trade and never shrink, so both are paged.
+  `v_customer_revenue` reads `FROM customer LEFT JOIN`, so it would have returned every customer
+  on the books in one array — the same defect as the original stock listing.
 - **Every listing is paged and capped.** A bare `List` return type is the tell. Each category has
   had exactly one N+1 in its listing and each was invisible on demo data, so a list query is
   counted at the database against realistic cardinality before the category is called done.

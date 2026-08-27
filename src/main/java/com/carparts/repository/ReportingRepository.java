@@ -159,16 +159,44 @@ public class ReportingRepository {
                 .optional();
     }
 
-    /** Worst shortfalls first, so the top of the list is what to reorder now. */
-    public List<LowStock> lowStock() {
+    /**
+     * Worst shortfalls first, so the top of the page is what to reorder now.
+     *
+     * <p>Paged, because this is not bounded by anything small: {@code v_low_stock} has a row per
+     * warehouse-and-part below its reorder level, so it grows with the catalogue multiplied by
+     * the number of warehouses. On a demo dataset it is a handful of rows and on a real one it
+     * is not.
+     *
+     * <p>Not filtered by warehouse. {@code GET /api/warehouses/{id}/stock?lowOnly=true} already
+     * answers that, and a second way to ask one question is a second thing to keep in step. This
+     * report is the cross-warehouse purchasing view, and it carries the supplier and the price
+     * for that reason.
+     *
+     * <p><b>{@code warehouse_id} closes the ordering, and it is not decoration.</b> A view row is
+     * a warehouse <em>and</em> a part, so the same SKU appears once per warehouse holding it
+     * short — {@code (shortfall, sku)} ties, and {@code LIMIT/OFFSET} across a tie has no defined
+     * order between pages. Measured before the fix: one row came back on two consecutive pages
+     * and another was never returned at all, while the total still said ten. A buyer working the
+     * reorder list would have silently skipped stock. Any offset-paged query needs a tiebreaker
+     * that is unique.
+     */
+    public List<LowStock> lowStock(int limit, long offset) {
         return jdbc.sql("""
                 SELECT warehouse_id, warehouse_name, part_id, sku, part_name,
                        price, supplier_name, quantity, reorder_level, shortfall
                 FROM v_low_stock
-                ORDER BY shortfall DESC, sku
+                ORDER BY shortfall DESC, sku, warehouse_id
+                LIMIT :limit OFFSET :offset
                 """)
+                .param("limit", limit)
+                .param("offset", offset)
                 .query(LowStock.class)
                 .list();
+    }
+
+    /** How many rows are below their reorder level, for the page's total. */
+    public long countLowStock() {
+        return jdbc.sql("SELECT COUNT(*) FROM v_low_stock").query(Long.class).single();
     }
 
     public Optional<OrderTotal> orderTotal(Long orderId) {
@@ -192,15 +220,42 @@ public class ReportingRepository {
      *
      * <p>This is revenue the shop earned, not money the customer holds or owes — see the note
      * on the view.
+     *
+     * <p>Paged. The view reads {@code FROM customer LEFT JOIN v_order_total}, so it has a row for
+     * every customer on the books — including those who have never ordered, at zero. That is a
+     * figure that grows with the customer base and never shrinks, which is exactly the shape
+     * that must not come back as one array.
+     *
+     * <p>{@code customer_id} closes the ordering. Revenue ties constantly — every customer who
+     * has never ordered sits at 0.00 — and a name is not unique, so without it two customers
+     * sharing a name at the same revenue could swap places between pages. See
+     * {@link #lowStock(int, long)}, where that was measured rather than assumed.
      */
-    public List<CustomerRevenue> revenueByCustomer() {
+    public List<CustomerRevenue> revenueByCustomer(int limit, long offset) {
         return jdbc.sql("""
                 SELECT customer_id, name, phone_number, order_count, revenue
                 FROM v_customer_revenue
-                ORDER BY revenue DESC, name
+                ORDER BY revenue DESC, name, customer_id
+                LIMIT :limit OFFSET :offset
                 """)
+                .param("limit", limit)
+                .param("offset", offset)
                 .query(CustomerRevenue.class)
                 .list();
+    }
+
+    /**
+     * How many customers the revenue report covers — every customer, ordered or not.
+     *
+     * <p>Counted from {@code customer}, not from the view, even though the view is what the page
+     * reads. {@code v_customer_revenue} is {@code FROM customer LEFT JOIN} grouped by customer,
+     * so it is one row per customer <em>by construction</em> and the two counts cannot disagree.
+     * Counting the view instead made PostgreSQL scan {@code order_item} and {@code customer_order}
+     * through two hash joins and aggregate all of it, to arrive at a number a single sequential
+     * scan of {@code customer} already gives.
+     */
+    public long countCustomers() {
+        return jdbc.sql("SELECT COUNT(*) FROM customer").query(Long.class).single();
     }
 
     /**
