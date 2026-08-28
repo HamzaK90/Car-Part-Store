@@ -6,7 +6,7 @@ are open.
 
 **Who** in the tables below:
 
-| | |
+| Who | Means |
 |---|---|
 | staff | any authenticated account — every account belongs to a member of staff |
 | ADMIN | the `ADMIN` role |

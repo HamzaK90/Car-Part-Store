@@ -1,8 +1,12 @@
 # Testing
 
-210 test methods, 260 executions, 96% instruction and 90% branch coverage. Every test runs
-against a real PostgreSQL 16 with the real migrations applied. There are no mocks of the
-database and no H2.
+**260 tests, 96% instruction and 90% branch coverage.** Every test runs against a real
+PostgreSQL 16 with the real migrations applied. There are no mocks of the database and no H2.
+
+That 260 is what Maven and CI report. It comes from **210 test methods** in the source: the
+difference is the parameterised ones, which run once per case — `EntityIdentityTest` alone is
+8 methods across 11 entities, which the runner reports as 58. Both numbers are true, and 260 is the one quoted elsewhere
+because it is what you see when you run the suite.
 
 ```bash
 ./mvnw verify          # everything, including the coverage floor

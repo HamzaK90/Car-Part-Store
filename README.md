@@ -18,7 +18,7 @@ Spring Security with JWT · springdoc-openapi · Maven
 Complete and runnable. Clone it, point it at a PostgreSQL database, and you have a working
 shop with staff, stock and orders to explore — see [Running it](#running-it).
 
-| | |
+| Component | State |
 |---|---|
 | Schema — 12 tables, 6 views, 6 triggers, Flyway V1–V6 | done |
 | Deterministic demo dataset | done |
@@ -27,7 +27,7 @@ shop with staff, stock and orders to explore — see [Running it](#running-it).
 | REST API — 48 endpoints, DTOs, RFC 7807 errors, OpenAPI | done |
 | JWT security — login, roles, per-department manager rule | done |
 | Invoice PDF | done |
-| Test suite — 210 tests, 96% instructions / 90% branches | done |
+| Test suite — 260 tests, 96% instructions / 90% branches | done |
 | CI — GitHub Actions on every push and pull request | done |
 | Documentation | done |
 
@@ -38,7 +38,7 @@ not H2. A full CI run takes about a minute.
 
 ## Documentation
 
-| | |
+| Document | Covers |
 |---|---|
 | [docs/architecture.md](docs/architecture.md) | the system — layers, security, errors, known gaps |
 | [docs/api.md](docs/api.md) | every endpoint, its parameters, and who may call it |
@@ -188,7 +188,7 @@ src/main/resources/db/migration/
   V5__auth.sql                     login accounts
   V6__seed_demo_data.sql           demo dataset
 
-src/test/java/com/carparts/        210 tests against a real PostgreSQL
+src/test/java/com/carparts/        260 tests against a real PostgreSQL
 ```
 
 ---
@@ -198,7 +198,7 @@ src/test/java/com/carparts/        210 tests against a real PostgreSQL
 The project ships with a complete working dataset, so it does something interesting the moment
 it starts. Following [Running it](#running-it) gives you a shop with:
 
-| | |
+| What you get | Detail |
 |---|---|
 | 4 departments | 2 branches and 2 warehouses |
 | 8 staff | across both branches and both warehouses, some managing a department |
