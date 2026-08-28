@@ -308,18 +308,60 @@ Decisions worth keeping:
   department that still had staff returned a `409` reading *"that department does not exist"*.
   Each constraint message describes the direction it can actually be seen in.
 
-### 7 — Security
+### 7 — Security ✅
 - [x] `SecurityFilterChain`, stateless, `JwtAuthFilter`, BCrypt cost 12
-- [ ] `@PreAuthorize` — writes and `/api/employees` require `ADMIN`
+- [x] `@PreAuthorize` — **administrative** writes and all of `/api/employees` require `ADMIN`.
+      Not every write: a salesperson must place orders and warehouse staff must receive stock,
+      so orders and stock are open to any authenticated member of staff. Reading
+      `/api/employees` needs ADMIN too, since those rows carry salaries and birthdates.
+      Operational writes say `isAuthenticated()` explicitly rather than being left bare, so an
+      endpoint with no rule reads as an anomaly instead of looking like a deliberate choice.
+      Reports stay open to any authenticated user: every account here belongs to staff, so the
+      question is which staff see what. `revenue-by-customer` is the one worth revisiting, and
+      the reason is the customer phone numbers in it rather than the revenue figure.
 - [x] Login reads `v_user_identity`: the JWT carries `userId`, `employeeId`, `role` and
       `isManager`, so a request knows exactly who made it. Every login failure — unknown
       username, wrong password, disabled account — is the same 401 with the same wording, or
       the endpoint becomes a way of discovering which accounts exist. An unknown username is
       still verified against a dummy digest so the two paths take the same time.
-- [ ] A manager may edit their own department — `isManager` plus a `departmentId` match,
-      not a role check, since managing is per-department rather than global
-- [ ] `customer_order.employee_id` is filled from the session, not from the request body,
-      so a salesperson cannot record an order as handled by a colleague
+- [x] A manager may edit their own department — `isManager` plus a `departmentId` match, not a
+      role check, since managing is per-department rather than global. Both halves are needed:
+      the flag alone lets any manager edit any department, the department alone lets every
+      employee edit the one they work in. **The claims are a login snapshot**, so a manager
+      demoted mid-session keeps the power until their token expires; a fresh login is refused.
+      That is the cost of not reading `v_user_identity` per request, and it is proven by test.
+- [x] `customer_order.employee_id` is filled from the session, not from the request body, so a
+      salesperson cannot record an order as handled by a colleague — `PlaceOrderRequest` has no
+      field to say it in, which is what makes that structural rather than a rule to remember.
+      An account with nobody on the payroll behind it still places orders and records no
+      handler, which the nullable column exists for. This is also where
+      `ct_order_employee_at_branch` starts biting: the handler was always null before, so the
+      rule had nothing to check, and warehouse staff can no longer place branch orders.
+
+Decisions worth keeping:
+
+- **Every login failure is one failure.** Unknown username, wrong password and disabled account
+  return the same 401 with the same wording, or the endpoint becomes a way of discovering which
+  accounts exist — and "that account is disabled" confirms a real one outright. An unknown
+  username is still verified against a digest so both paths cost the same quarter-second;
+  without that, timing alone separates real usernames from invented ones. That digest is
+  generated at start-up by the encoder rather than written as a literal, because a malformed one
+  is rejected on sight and the delay silently disappears.
+- **The token is a snapshot, not a session.** Claims are read once at login, so a request needs
+  no lookup — and an identity change does not reach a token already issued. Promotion,
+  demotion and a disabled account all take effect at the next login, within the hour the token
+  lasts. Revoking sooner means disabling the account and waiting out the expiry; there is no
+  server-side session to end.
+- **Authorisation lives on the endpoints, not in the URL patterns.** The chain decides only
+  whether a request is authenticated. `/api/departments/{id}` is admin-only for one verb and
+  open to that department's manager for another, and a matcher cannot see the difference
+  without repeating the routing.
+- **A refusal must not say which layer refused.** The filter chain answers denials decided by
+  `authorizeHttpRequests`; `ApiExceptionHandler` answers `@PreAuthorize` denials, which are
+  thrown during handler invocation and would otherwise hit the catch-all and be reported as
+  500s. Both take their wording from one constant.
+- **Authorisation runs before the work.** A forbidden call against a row that does not exist
+  answers 403, not 404, so the API cannot be used to probe for what exists.
 
 ### 8 — Invoice PDF
 - [ ] `GET /api/orders/{id}/invoice.pdf` — Thymeleaf → openhtmltopdf
@@ -377,9 +419,16 @@ becomes ordered minus paid.
 
 ## Acceptance
 
-1. Login returns a JWT. No token → 401. Wrong role → 403.
-2. Placing an order decrements warehouse stock.
-3. Ordering more than available → 409 with stock unchanged.
-4. An invoice total is unaffected by a later change to `part.price`.
-5. Naming a warehouse employee as the handler of a branch order → rejected.
-6. `INSERT INTO employee (salary) VALUES (-5)` → rejected by `CHECK`.
+All six are met and verified over HTTP against PostgreSQL 16, on a cluster built from scratch.
+
+1. ✅ Login returns a JWT. No token → 401. Wrong role → 403.
+2. ✅ Placing an order decrements warehouse stock — 30 → 26 for a line of four.
+3. ✅ Ordering more than available → 409 naming the part, the quantity asked and the quantity
+   available, with stock unchanged afterwards.
+4. ✅ An invoice total is unaffected by a later change to `part.price` — repriced 45 → 999, the
+   settled order held at 180.00 because the line kept the price captured at sale.
+5. ✅ A warehouse employee cannot handle a branch order. Now that the handler comes from the
+   token, this is a warehouse-staff account being refused with a message naming them and the
+   branch — and supplying an `employeeId` in the body does not get around it.
+6. ✅ A negative salary is refused twice over: `400` from Bean Validation before it reaches the
+   database, and `ck_employee_salary` if anything writes the row directly.
