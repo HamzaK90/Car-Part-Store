@@ -1,5 +1,6 @@
 package com.carparts.web;
 
+import com.carparts.security.Access;
 import com.carparts.service.AuthenticationFailedException;
 import com.carparts.service.InsufficientStockException;
 import com.carparts.service.InvalidRequestException;
@@ -14,6 +15,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -120,6 +122,24 @@ public class ApiExceptionHandler {
     public ProblemDetail onAuthenticationFailed(AuthenticationFailedException e) {
         return problem(HttpStatus.UNAUTHORIZED, "Unauthenticated", e.getMessage(),
                 "unauthenticated");
+    }
+
+    /**
+     * A {@code @PreAuthorize} rule refused this caller.
+     *
+     * <p>Handled here as well as in the filter chain, and both are needed. The chain's handler
+     * catches denials decided by {@code authorizeHttpRequests}, which happen before the request
+     * reaches a controller. A method-level denial is thrown <em>during</em> the handler
+     * invocation, so it travels through Spring MVC's exception resolution and lands in this
+     * advice — where the catch-all would have reported it as a 500 and logged a genuine
+     * authorisation decision as a server fault.
+     *
+     * <p>The wording comes from {@link Access#REFUSED} rather than being written again here, so
+     * the two layers cannot drift into telling a client which one refused them.
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    public ProblemDetail onAccessDenied() {
+        return problem(HttpStatus.FORBIDDEN, "Forbidden", Access.REFUSED, "forbidden");
     }
 
     @ExceptionHandler(InvalidRequestException.class)

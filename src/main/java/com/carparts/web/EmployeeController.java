@@ -15,6 +15,7 @@ import java.net.URI;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,7 +33,13 @@ import org.springframework.web.bind.annotation.RestController;
  * <p>No {@code @Transactional} here. Every query fetches the department and manager a row
  * reports on, so nothing is left to resolve while the response is being written — see the note
  * on {@link OrderController}.
+ *
+ * <p><b>ADMIN for the whole resource, reads included.</b> Every other listing is open to any
+ * authenticated user, but a payroll is not general reading: these rows carry salaries and
+ * birthdates. The class-level annotation is what makes that hold for endpoints added later —
+ * a per-method rule would leave the next one open by default.
  */
+@PreAuthorize("hasRole('ADMIN')")
 @RestController
 @RequestMapping("/api/employees")
 @Tag(name = "Employees", description = "Staff, and where they work")
