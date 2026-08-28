@@ -54,17 +54,6 @@ public class ReportingRepository {
             int reorderLevel,
             int shortfall) {}
 
-    /** An order and what it came to, from the prices captured at sale. */
-    public record OrderTotal(
-            Long orderId,
-            Long customerId,
-            Long branchId,
-            Long warehouseId,
-            LocalDate orderDate,
-            OrderStatus status,
-            long lineCount,
-            long unitCount,
-            BigDecimal totalAmount) {}
 
     /**
      * One row of an order list: everything a listing shows, and nothing it does not.
@@ -199,17 +188,12 @@ public class ReportingRepository {
         return jdbc.sql("SELECT COUNT(*) FROM v_low_stock").query(Long.class).single();
     }
 
-    public Optional<OrderTotal> orderTotal(Long orderId) {
-        return jdbc.sql("""
-                SELECT order_id, customer_id, branch_id, warehouse_id,
-                       order_date, status, line_count, unit_count, total_amount
-                FROM v_order_total
-                WHERE order_id = ?
-                """)
-                .param(orderId)
-                .query(OrderTotal.class)
-                .optional();
-    }
+    // No orderTotal(orderId). It was written for the invoice and the invoice does not want it:
+    // rendering one loads the order with its lines, so order.total() answers from objects
+    // already in hand. That is the project's own rule about where a derived value comes from —
+    // Java acts on what is loaded, views answer across rows nothing has loaded — and a query
+    // for a figure already held is the wrong side of it. v_order_total is still the source for
+    // orderSummaries and v_customer_revenue, which do read across rows.
 
     /**
      * Revenue per customer, best customer first.

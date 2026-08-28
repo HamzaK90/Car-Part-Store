@@ -363,8 +363,28 @@ Decisions worth keeping:
 - **Authorisation runs before the work.** A forbidden call against a row that does not exist
   answers 403, not 404, so the API cannot be used to probe for what exists.
 
-### 8 — Invoice PDF
-- [ ] `GET /api/orders/{id}/invoice.pdf` — Thymeleaf → openhtmltopdf
+### 8 — Invoice PDF ✅
+- [x] `GET /api/orders/{id}/invoice.pdf` — Thymeleaf → openhtmltopdf
+
+Decisions worth keeping:
+
+- **No letter-spacing in the template.** openhtmltopdf renders tracking by placing each glyph
+  separately, which leaves the PDF's text layer reading `C A N C E L L E D`. Searching or
+  copying the document then fails on exactly the words that matter most on an invoice.
+  Tracking is cosmetic; searchable text is not.
+- **The renderer is given no base URI.** A document that can resolve relative URLs will fetch
+  whatever they point at while rendering, which turns a template into a way of making the
+  server issue requests. An invoice needs no external resource, so it is given no way to ask.
+- **A render failure is a 500, not a 409.** `ApiExceptionHandler` maps `IllegalStateException`
+  to *"Not allowed"*, which is how a domain object refuses an operation. A renderer falling
+  over is not the caller doing something disallowed, so it throws `UncheckedIOException` and
+  reaches the catch-all instead of sending somebody away to fix a request that was fine.
+- **A cancelled order keeps its invoice**, marked as cancelled and saying the parts went back
+  to stock. A document that simply disappears leaves nothing to reconcile against.
+- **`ReportingRepository.orderTotal` is gone.** It was written for this step and this step does
+  not want it: rendering an invoice loads the order with its lines, so `order.total()` answers
+  from objects already in hand. Views answer across rows nothing has loaded; this was the
+  wrong side of that rule, and it had no caller from step 4 until it was deleted.
 
 ### 9 — Tests
 - [ ] Integration tests on embedded PostgreSQL running the real migrations
