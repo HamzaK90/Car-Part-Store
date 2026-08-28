@@ -154,7 +154,9 @@
                     </execution>
                     <!-- A floor, not a target. Set just below where the suite sits so an
                          accidental gutting of the tests fails the build, while ordinary work
-                         that happens to dip a point does not. Raise it deliberately. -->
+                         that happens to dip a point does not. Raise it deliberately — it was
+                         60/85 when the suite covered less, and a floor left far below where
+                         you actually sit stops meaning anything. -->
                     <execution>
                         <id>coverage-floor</id>
                         <phase>verify</phase>
@@ -167,12 +169,12 @@
                                         <limit>
                                             <counter>INSTRUCTION</counter>
                                             <value>COVEREDRATIO</value>
-                                            <minimum>0.60</minimum>
+                                            <minimum>0.75</minimum>
                                         </limit>
                                         <limit>
                                             <counter>CLASS</counter>
                                             <value>COVEREDRATIO</value>
-                                            <minimum>0.85</minimum>
+                                            <minimum>0.95</minimum>
                                         </limit>
                                     </limits>
                                 </rule>
