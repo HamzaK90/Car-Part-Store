@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="erd" name="ERD">
-        <mxGraphModel dx="3107" dy="1590" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2250" pageHeight="1140" math="0" shadow="0">
+        <mxGraphModel dx="4860" dy="2405" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2250" pageHeight="1140" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -8,7 +8,7 @@
                     <mxGeometry x="40" y="10" width="900" height="34" as="geometry"/>
                 </mxCell>
                 <mxCell id="supplier" value="supplier" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fixedRows=1;rowLines=0;fontStyle=1;align=center;resizeLast=1;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;" parent="1" vertex="1">
-                    <mxGeometry x="40" y="70" width="300" height="160" as="geometry"/>
+                    <mxGeometry x="70" y="70" width="300" height="160" as="geometry"/>
                 </mxCell>
                 <mxCell id="supplier-r0" value="" style="shape=tableRow;horizontal=0;startSize=0;swimlaneHead=0;swimlaneBody=0;fillColor=none;collapsible=0;dropTarget=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;top=0;left=0;right=0;bottom=0;" parent="supplier" vertex="1">
                     <mxGeometry y="30" width="300" height="26" as="geometry"/>
@@ -196,7 +196,7 @@
                     </mxGeometry>
                 </mxCell>
                 <mxCell id="fitment" value="car_fitment" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fixedRows=1;rowLines=0;fontStyle=1;align=center;resizeLast=1;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;" parent="1" vertex="1">
-                    <mxGeometry x="40" y="590" width="300" height="160" as="geometry"/>
+                    <mxGeometry x="70" y="676" width="300" height="160" as="geometry"/>
                 </mxCell>
                 <mxCell id="fitment-r0" value="" style="shape=tableRow;horizontal=0;startSize=0;swimlaneHead=0;swimlaneBody=0;fillColor=none;collapsible=0;dropTarget=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;top=0;left=0;right=0;bottom=0;" parent="fitment" vertex="1">
                     <mxGeometry y="30" width="300" height="26" as="geometry"/>
@@ -264,7 +264,7 @@
                     </mxGeometry>
                 </mxCell>
                 <mxCell id="stock" value="warehouse_stock" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fixedRows=1;rowLines=0;fontStyle=1;align=center;resizeLast=1;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=13;" parent="1" vertex="1">
-                    <mxGeometry x="640" y="600" width="300" height="108" as="geometry"/>
+                    <mxGeometry x="670" y="600" width="300" height="108" as="geometry"/>
                 </mxCell>
                 <mxCell id="stock-r0" value="" style="shape=tableRow;horizontal=0;startSize=0;swimlaneHead=0;swimlaneBody=0;fillColor=none;collapsible=0;dropTarget=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;top=0;left=0;right=0;bottom=0;" parent="stock" vertex="1">
                     <mxGeometry y="30" width="300" height="26" as="geometry"/>
@@ -400,7 +400,7 @@
                     </mxGeometry>
                 </mxCell>
                 <mxCell id="wh" value="warehouse" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fixedRows=1;rowLines=0;fontStyle=1;align=center;resizeLast=1;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;" parent="1" vertex="1">
-                    <mxGeometry x="660" y="400" width="300" height="108" as="geometry"/>
+                    <mxGeometry x="670" y="400" width="300" height="108" as="geometry"/>
                 </mxCell>
                 <mxCell id="wh-r0" value="" style="shape=tableRow;horizontal=0;startSize=0;swimlaneHead=0;swimlaneBody=0;fillColor=none;collapsible=0;dropTarget=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;top=0;left=0;right=0;bottom=0;" parent="wh" vertex="1">
                     <mxGeometry y="30" width="300" height="26" as="geometry"/>
@@ -442,7 +442,7 @@
                     </mxGeometry>
                 </mxCell>
                 <mxCell id="br" value="branch" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fixedRows=1;rowLines=0;fontStyle=1;align=center;resizeLast=1;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;" parent="1" vertex="1">
-                    <mxGeometry x="1060" y="460" width="280" height="82" as="geometry"/>
+                    <mxGeometry x="1070" y="450" width="280" height="82" as="geometry"/>
                 </mxCell>
                 <mxCell id="br-r0" value="" style="shape=tableRow;horizontal=0;startSize=0;swimlaneHead=0;swimlaneBody=0;fillColor=none;collapsible=0;dropTarget=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;top=0;left=0;right=0;bottom=0;" parent="br" vertex="1">
                     <mxGeometry y="30" width="280" height="26" as="geometry"/>
@@ -888,23 +888,42 @@
                         <mxRectangle width="246" height="26" as="alternateBounds"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="e15" value="logs in as" style="edgeStyle=entityRelationEdgeStyle;fontSize=11;html=1;rounded=0;exitPerimeter=1;startArrow=ERzeroToOne;startFill=0;endArrow=ERzeroToOne;endFill=0;" parent="1" source="emp" target="user" edge="1">
+                <mxCell id="e15" value="logs in as" style="edgeStyle=entityRelationEdgeStyle;fontSize=11;html=1;rounded=0;startArrow=ERzeroToOne;startFill=0;endArrow=ERzeroToOne;endFill=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="emp-r2" target="user" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="e1" value="supplies" style="edgeStyle=entityRelationEdgeStyle;fontSize=11;html=1;rounded=0;exitPerimeter=1;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;" parent="1" source="supplier" target="part" edge="1">
+                <mxCell id="e1" value="supplies" style="edgeStyle=entityRelationEdgeStyle;fontSize=11;html=1;rounded=0;exitPerimeter=1;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="supplier" target="part-r0" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="e2" value="fits" style="edgeStyle=entityRelationEdgeStyle;fontSize=11;html=1;rounded=0;exitPerimeter=1;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;" parent="1" source="part" target="fitment" edge="1">
+                <mxCell id="e2" value="fits" style="edgeStyle=entityRelationEdgeStyle;fontSize=11;html=1;rounded=0;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="part-r8" target="fitment-r2" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="410" y="530" as="sourcePoint"/>
+                        <mxPoint x="380" y="700" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="410" y="575"/>
+                            <mxPoint x="430" y="655"/>
+                            <mxPoint x="390" y="650"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e3" value="stocked as" style="edgeStyle=entityRelationEdgeStyle;fontSize=11;html=1;rounded=0;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="part-r2" target="stock" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="390" y="390"/>
+                            <mxPoint x="540" y="450"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e4" value="stores" style="edgeStyle=entityRelationEdgeStyle;fontSize=11;html=1;rounded=0;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="wh-r2" target="stock" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="e3" value="stocked as" style="edgeStyle=entityRelationEdgeStyle;fontSize=11;html=1;rounded=0;exitPerimeter=1;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;" parent="1" source="part" target="stock" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="e4" value="stores" style="edgeStyle=entityRelationEdgeStyle;fontSize=11;html=1;rounded=0;exitPerimeter=1;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;" parent="1" source="wh" target="stock" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="e5" value="subtype" style="edgeStyle=entityRelationEdgeStyle;fontSize=11;html=1;rounded=0;exitPerimeter=1;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToOne;endFill=0;" parent="1" source="dept" target="wh" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
+                <mxCell id="e5" value="subtype" style="edgeStyle=entityRelationEdgeStyle;fontSize=11;html=1;rounded=0;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToOne;endFill=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="dept-r5" target="wh-r0" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="980" y="360" as="sourcePoint"/>
+                        <Array as="points">
+                            <mxPoint x="1180" y="290"/>
+                            <mxPoint x="1000" y="340"/>
+                        </Array>
+                    </mxGeometry>
                 </mxCell>
                 <mxCell id="e6" value="subtype" style="edgeStyle=entityRelationEdgeStyle;fontSize=11;html=1;rounded=0;exitPerimeter=1;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToOne;endFill=0;" parent="1" source="dept" target="br" edge="1">
                     <mxGeometry relative="1" as="geometry">
@@ -914,36 +933,40 @@
                         </Array>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="e7" value="employs" style="edgeStyle=entityRelationEdgeStyle;fontSize=11;html=1;rounded=0;exitPerimeter=1;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;" parent="1" source="dept" target="emp" edge="1">
+                <mxCell id="e7" value="employs" style="edgeStyle=entityRelationEdgeStyle;fontSize=11;html=1;rounded=0;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;exitX=0.999;exitY=0.763;exitDx=0;exitDy=0;exitPerimeter=0;" parent="1" source="dept-r1" target="emp" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="e8" value="manages" style="edgeStyle=entityRelationEdgeStyle;fontSize=11;html=1;rounded=0;exitPerimeter=1;startArrow=ERzeroToOne;startFill=0;endArrow=ERzeroToOne;endFill=0;" parent="1" source="emp" target="dept" edge="1">
+                <mxCell id="e8" value="manages" style="edgeStyle=entityRelationEdgeStyle;fontSize=11;html=1;rounded=0;exitPerimeter=0;startArrow=ERzeroToOne;startFill=0;endArrow=ERzeroToOne;endFill=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=-0.011;exitY=0.759;exitDx=0;exitDy=0;" parent="1" source="emp-r2" target="dept-r0" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="e9" value="places" style="edgeStyle=entityRelationEdgeStyle;fontSize=11;html=1;rounded=0;exitPerimeter=1;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;" parent="1" source="cust" target="ord" edge="1">
+                <mxCell id="e9" value="places" style="edgeStyle=entityRelationEdgeStyle;fontSize=11;html=1;rounded=0;exitPerimeter=1;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;entryX=1;entryY=0.247;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="cust" target="ord-r4" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="e10" value="handles" style="edgeStyle=entityRelationEdgeStyle;fontSize=11;html=1;rounded=0;exitPerimeter=1;startArrow=ERzeroToOne;startFill=0;endArrow=ERzeroToMany;endFill=0;" parent="1" source="emp" target="ord" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="e11" value="fulfils" style="edgeStyle=entityRelationEdgeStyle;fontSize=11;html=1;rounded=0;exitPerimeter=1;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;" parent="1" source="wh" target="ord" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
+                <mxCell id="e11" value="fulfils" style="edgeStyle=entityRelationEdgeStyle;fontSize=11;html=1;rounded=0;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="wh-r1" target="ord-r1" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1240" y="730"/>
+                        </Array>
+                    </mxGeometry>
                 </mxCell>
-                <mxCell id="e14" value="placed at" style="edgeStyle=entityRelationEdgeStyle;fontSize=11;html=1;rounded=0;exitPerimeter=1;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;" parent="1" source="br" target="ord" edge="1">
+                <mxCell id="e14" value="placed at" style="edgeStyle=entityRelationEdgeStyle;fontSize=11;html=1;rounded=0;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="br-r1" target="ord" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="e12" value="contains" style="edgeStyle=entityRelationEdgeStyle;fontSize=11;html=1;rounded=0;exitPerimeter=1;startArrow=ERmandOne;startFill=0;endArrow=ERoneToMany;endFill=0;" parent="1" source="ord" target="item" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="e13" value="ordered as" style="edgeStyle=entityRelationEdgeStyle;fontSize=11;html=1;rounded=0;exitPerimeter=1;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;" parent="1" source="part" target="item" edge="1">
+                <mxCell id="e13" value="ordered as" style="edgeStyle=entityRelationEdgeStyle;fontSize=11;html=1;rounded=0;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="part-r5" target="item" edge="1">
                     <mxGeometry relative="1" as="geometry">
                         <Array as="points">
                             <mxPoint x="780" y="590"/>
                         </Array>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="legend" value="LEGEND PK primary key · FK foreign key · UK unique · PK FK part of a composite primary key  SUBTYPES  department declares UNIQUE (department_id, type). warehouse and branch each pin their own type with a CHECK and reference that composite key, so a department is exactly one of the two — enforced structurally, without a trigger.  ORDERS  branch_id is the sales location where the order was taken; warehouse_id is the warehouse whose stock fills it. order_item.unit_price records the price at the time of sale, so an invoice total is fixed once the order exists. order_item's key is (order_id, part_id), so a part appears at most once per order and quantity carries the count.  CROSS-TABLE RULES are constraint triggers in V3, for what a CHECK cannot see: the handler works at the branch that took the order; a manager belongs to the department they manage; only a PLACED order may become FULFILLED or CANCELLED; an order holds at least one line. The last two are deferred to COMMIT, since a header exists before the lines that reference it.  MANAGERS  department.manager_id is nullable: a department is created before anyone is hired into it. A constraint trigger refuses an outsider as manager, but a sitting manager who transfers or leaves simply vacates the post — losing a manager is normal, having one who works elsewhere is not. v_department_without_manager reports the vacancy for an admin to fill.  LOW STOCK  the reorder point is per part, in part.reorder_level, not a fixed constant; a part left at the default 0 never reports as low.  LOGINS  app_user.employee_id is nullable and unique: a login may belong to no person (a service account), and no person may hold two logins. There is no MANAGER role — v_user_identity derives is_manager from department.manager_id, so promotion stays a single UPDATE.  DERIVED VALUES are views, not columns: v_department_headcount, v_department_without_manager, v_order_total, v_customer_revenue, v_low_stock, and v_user_identity. v_customer_revenue is revenue the shop earned from a customer, not money they owe — there is no payments table, so no balance can be known." style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;" parent="1" vertex="1">
-                    <mxGeometry x="40" y="900" width="720" height="400" as="geometry"/>
+                <mxCell id="legend" value="LEGEND PK primary key · FK foreign key · UK unique · PK FK part of a composite primary key  SUBTYPES  department declares UNIQUE (department_id, type). warehouse and branch each pin their own type with a CHECK and reference that composite key, so a department is exactly one of the two — enforced structurally, without a trigger.  ORDERS  branch_id is the sales location where the order was taken; warehouse_id is the warehouse whose stock fills it. order_item.unit_price records the price at the time of sale, so an invoice total is fixed once the order exists. order_item&#39;s key is (order_id, part_id), so a part appears at most once per order and quantity carries the count.  CROSS-TABLE RULES are constraint triggers in V3, for what a CHECK cannot see: the handler works at the branch that took the order; a manager belongs to the department they manage; only a PLACED order may become FULFILLED or CANCELLED; an order holds at least one line. The last two are deferred to COMMIT, since a header exists before the lines that reference it.  MANAGERS  department.manager_id is nullable: a department is created before anyone is hired into it. A constraint trigger refuses an outsider as manager, but a sitting manager who transfers or leaves simply vacates the post — losing a manager is normal, having one who works elsewhere is not. v_department_without_manager reports the vacancy for an admin to fill.  LOW STOCK  the reorder point is per part, in part.reorder_level, not a fixed constant; a part left at the default 0 never reports as low.  LOGINS  app_user.employee_id is nullable and unique: a login may belong to no person (a service account), and no person may hold two logins. There is no MANAGER role — v_user_identity derives is_manager from department.manager_id, so promotion stays a single UPDATE.  DERIVED VALUES are views, not columns: v_department_headcount, v_department_without_manager, v_order_total, v_customer_revenue, v_low_stock, and v_user_identity. v_customer_revenue is revenue the shop earned from a customer, not money they owe — there is no payments table, so no balance can be known." style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="944" width="660" height="300" as="geometry"/>
                 </mxCell>
             </root>
         </mxGraphModel>

@@ -39,7 +39,7 @@ not H2. A full CI run takes about a minute.
 | [docs/database.md](docs/database.md) | the schema — design decisions, constraints, views, triggers |
 | [docs/testing.md](docs/testing.md) | what is tested, how, and what was found |
 | [PLAN.md](PLAN.md) | the roadmap this was built against |
-| [docs/diagrams/](docs/diagrams/) | ERD, class diagram, order sequence — editable draw.io |
+| [docs/diagrams/](docs/diagrams/) | ERD, class diagram, order sequence — shown below |
 
 ---
 
@@ -130,6 +130,30 @@ low stock are computed on read. There is no stored copy to fall out of step.
 And one from the test suite: `QueryCountTest` asserts how many queries a page costs. With
 `Part.supplier` switched to `EAGER` and its fetch join removed, every other test still passes
 while the parts listing quietly goes from 2 queries to 14. Only that test fails.
+
+---
+
+## Diagrams
+
+**Entity relationship diagram.** The 12 tables, the disjoint subtypes, and a legend explaining
+each decision.
+
+![Entity relationship diagram](docs/diagrams/erd.png)
+
+**Domain model.** The JPA entities, their associations, and the behaviour that lives on them.
+
+![Domain model class diagram](docs/diagrams/uml-class.png)
+
+**Placing an order.** One transaction, from the request through the row locks and back.
+
+![Order placement sequence diagram](docs/diagrams/order-sequence.png)
+
+The `.drawio` files beside these images are the editable sources. After changing one, re-export
+it with the draw.io desktop app:
+
+```bash
+draw.io --export --format png --border 16 --width 2000 --theme light   --output docs/diagrams/erd.png docs/diagrams/erd.drawio
+```
 
 ---
 
