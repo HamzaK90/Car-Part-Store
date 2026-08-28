@@ -11,8 +11,10 @@ import com.carparts.domain.OrderStatus;
 import com.carparts.domain.Part;
 import com.carparts.domain.ShiftType;
 import com.carparts.domain.Supplier;
+import com.carparts.domain.UserRole;
 import com.carparts.domain.Warehouse;
 import com.carparts.domain.WarehouseStock;
+import com.carparts.repository.ReportingRepository.UserIdentity;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -31,6 +33,39 @@ import java.util.List;
 public final class Responses {
 
     private Responses() {
+    }
+
+    // ---------------------------------------------------------------- authentication
+
+    /**
+     * A successful login.
+     *
+     * <p>The identity fields are a convenience for the client — enough to greet somebody by name
+     * and hide buttons they cannot use. They are <em>not</em> what the server trusts: every
+     * authorisation decision reads the signed claims in the token, so a client editing this body
+     * changes nothing it is allowed to do.
+     *
+     * <p>{@code employeeId} is null for an account that belongs to nobody on the payroll, and
+     * {@code isManager} is derived by {@code v_user_identity} rather than stored on the account.
+     */
+    public record LoginResponse(
+            String token,
+            String tokenType,
+            long expiresInSeconds,
+            String username,
+            UserRole role,
+            Long employeeId,
+            String fullName,
+            Long departmentId,
+            String departmentName,
+            boolean isManager) {
+
+        public static LoginResponse of(String token, long expiresInSeconds, UserIdentity who) {
+            return new LoginResponse(
+                    token, "Bearer", expiresInSeconds,
+                    who.username(), who.role(), who.employeeId(), who.fullName(),
+                    who.departmentId(), who.departmentName(), who.isManager());
+        }
     }
 
     // ---------------------------------------------------------------- catalogue

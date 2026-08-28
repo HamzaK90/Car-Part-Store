@@ -1,6 +1,9 @@
 package com.carparts.config;
 
+import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
 import org.springframework.context.annotation.Bean;
@@ -18,7 +21,19 @@ public class OpenApiConfig {
 
     @Bean
     public OpenAPI carPartsOpenApi() {
-        return new OpenAPI().info(new Info()
+        // Every endpoint but /api/auth/login needs a bearer token. Declaring the scheme is
+        // what puts the Authorize button in Swagger and makes try-it-out work at all; without
+        // it the browsable description became useless the moment the API was closed.
+        SecurityScheme bearer = new SecurityScheme()
+                .type(SecurityScheme.Type.HTTP)
+                .scheme("bearer")
+                .bearerFormat("JWT")
+                .description("Paste the token from POST /api/auth/login.");
+
+        return new OpenAPI()
+                .components(new Components().addSecuritySchemes("bearerAuth", bearer))
+                .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
+                .info(new Info()
                 .title("Car Parts Store API")
                 .version("1.0.0")
                 .description("""

@@ -1,5 +1,6 @@
 package com.carparts.web;
 
+import com.carparts.service.AuthenticationFailedException;
 import com.carparts.service.InsufficientStockException;
 import com.carparts.service.InvalidRequestException;
 import com.carparts.service.NotFoundException;
@@ -106,6 +107,19 @@ public class ApiExceptionHandler {
     @ExceptionHandler(NotFoundException.class)
     public ProblemDetail onNotFound(NotFoundException e) {
         return problem(HttpStatus.NOT_FOUND, "Not found", e.getMessage(), "not-found");
+    }
+
+    /**
+     * Login failed.
+     *
+     * <p>401 rather than 403: the request has not established who it is. The detail is the same
+     * sentence whatever went wrong, so the endpoint cannot be used to discover which usernames
+     * exist — see {@link AuthenticationFailedException}.
+     */
+    @ExceptionHandler(AuthenticationFailedException.class)
+    public ProblemDetail onAuthenticationFailed(AuthenticationFailedException e) {
+        return problem(HttpStatus.UNAUTHORIZED, "Unauthenticated", e.getMessage(),
+                "unauthenticated");
     }
 
     @ExceptionHandler(InvalidRequestException.class)

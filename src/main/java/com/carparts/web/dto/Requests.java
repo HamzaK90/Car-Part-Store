@@ -81,6 +81,17 @@ public final class Requests {
      * {@code "   "}, so without this a caller who sent an untouched form field got a 400 or a
      * 201 depending on whether their browser happened to trim it. Both mean "no email".
      */
+    /**
+     * Logging in.
+     *
+     * <p>Only presence is validated. Checking the shape of a submitted password — a length, a
+     * character class — would tell somebody probing the endpoint what a real password looks
+     * like, and the answer to a wrong one is the same 401 either way.
+     */
+    public record LoginRequest(
+            @NotBlank(message = "a username is required") String username,
+            @NotBlank(message = "a password is required") String password) {}
+
     public record CreateCustomerRequest(
             @NotBlank @Size(max = 100) String name,
             @NotBlank @Size(max = 20) String phoneNumber,

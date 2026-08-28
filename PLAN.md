@@ -309,10 +309,13 @@ Decisions worth keeping:
   Each constraint message describes the direction it can actually be seen in.
 
 ### 7 — Security
-- [ ] `SecurityFilterChain`, stateless, `JwtAuthFilter`, BCrypt cost 12
+- [x] `SecurityFilterChain`, stateless, `JwtAuthFilter`, BCrypt cost 12
 - [ ] `@PreAuthorize` — writes and `/api/employees` require `ADMIN`
-- [ ] Login reads `v_user_identity`: the JWT carries `userId`, `employeeId`, `role` and
-      `isManager`, so a request knows exactly who made it
+- [x] Login reads `v_user_identity`: the JWT carries `userId`, `employeeId`, `role` and
+      `isManager`, so a request knows exactly who made it. Every login failure — unknown
+      username, wrong password, disabled account — is the same 401 with the same wording, or
+      the endpoint becomes a way of discovering which accounts exist. An unknown username is
+      still verified against a dummy digest so the two paths take the same time.
 - [ ] A manager may edit their own department — `isManager` plus a `departmentId` match,
       not a role check, since managing is per-department rather than global
 - [ ] `customer_order.employee_id` is filled from the session, not from the request body,
