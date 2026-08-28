@@ -49,7 +49,7 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
      * not a stylistic choice: PostgreSQL type-checks the whole predicate even where it would
      * short-circuit, and a null native-enum parameter arrives with nothing to infer a type from,
      * so {@code :type IS NULL OR d.type = :type} fails with <em>could not determine data type of
-     * parameter</em>. The same trap {@code CustomerOrderRepository.search} works around for
+     * parameter</em>. The same trap {@code ReportingRepository.orderSummaries} works around for
      * status, and {@code PartRepository.search} for a null search term.
      *
      * <p>This replaces the two unpaged {@code findAllBranchesBy} / {@code findAllWarehousesBy}

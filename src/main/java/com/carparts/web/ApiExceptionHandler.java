@@ -216,7 +216,11 @@ public class ApiExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ProblemDetail onConstraintViolation(DataIntegrityViolationException e) {
         String constraint = constraintNameOf(e);
-        String detail = CONSTRAINT_MESSAGES.get(constraint);
+        // Null-checked before the lookup, not after. Map.ofEntries returns an immutable map that
+        // throws on get(null) rather than answering null, so an unrecognised violation — the one
+        // case the fallback below exists for — used to raise a NullPointerException inside this
+        // handler and leave the caller with a bare 500 from the catch-all.
+        String detail = constraint == null ? null : CONSTRAINT_MESSAGES.get(constraint);
 
         if (detail == null) {
             log.warn("unmapped constraint violation: {}", constraint, e);

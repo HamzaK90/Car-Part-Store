@@ -156,7 +156,14 @@
                          accidental gutting of the tests fails the build, while ordinary work
                          that happens to dip a point does not. Raise it deliberately — it was
                          60/85 when the suite covered less, and a floor left far below where
-                         you actually sit stops meaning anything. -->
+                         you actually sit stops meaning anything. It was 60/85, then 75/95; the
+                         suite now sits at 96% instructions and 89% branches.
+
+                         BRANCH is here as well as INSTRUCTION because they fail differently. A
+                         test that calls a method and asserts nothing about which way it went
+                         still covers every instruction in it — instruction coverage alone can
+                         be satisfied by tests that check nothing, and this project has already
+                         written two of those by accident. -->
                     <execution>
                         <id>coverage-floor</id>
                         <phase>verify</phase>
@@ -169,12 +176,17 @@
                                         <limit>
                                             <counter>INSTRUCTION</counter>
                                             <value>COVEREDRATIO</value>
-                                            <minimum>0.75</minimum>
+                                            <minimum>0.92</minimum>
+                                        </limit>
+                                        <limit>
+                                            <counter>BRANCH</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.85</minimum>
                                         </limit>
                                         <limit>
                                             <counter>CLASS</counter>
                                             <value>COVEREDRATIO</value>
-                                            <minimum>0.95</minimum>
+                                            <minimum>0.98</minimum>
                                         </limit>
                                     </limits>
                                 </rule>

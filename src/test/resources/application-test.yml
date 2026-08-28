@@ -13,6 +13,13 @@ spring:
     properties:
       hibernate:
         format_sql: false
+        # Counts the statements Hibernate prepares, which is what QueryCountTest asserts on.
+        # This project's bug history is mostly N+1 — orders once cost about six queries a row,
+        # parts twelve for a page of ten — and every one of them was found by counting
+        # statements by hand against a throwaway cluster. This is that check, automated.
+        #
+        # Test profile only. It is cheap but not free, and nothing in production reads it.
+        generate_statistics: true
 
   flyway:
     enabled: true

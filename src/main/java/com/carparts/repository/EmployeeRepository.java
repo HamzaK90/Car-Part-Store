@@ -24,7 +24,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
      *
      * <p>{@code departmentId} is safe to pass as null: it is only ever compared to a bigint
      * column, which the driver can type on its own. A null <em>enum</em> or <em>string</em> in
-     * that position would not be — see {@code CustomerOrderRepository.search}.
+     * that position would not be — see {@code ReportingRepository.orderSummaries}.
      */
     String FILTER = "WHERE (:departmentId IS NULL OR e.department.id = :departmentId)";
 

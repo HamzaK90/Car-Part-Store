@@ -113,6 +113,13 @@ public class CustomerOrder {
      * the code that caused it.
      */
     public OrderItem addLine(Part part, int quantity) {
+        // ck_order_item_quantity refuses this at flush, which is late and reads as a constraint
+        // name rather than a sentence. Refusing here says what was wrong while the caller is
+        // still holding the thing that was wrong.
+        if (quantity <= 0) {
+            throw new IllegalArgumentException(
+                    "a line must be for at least one unit, not " + quantity);
+        }
         OrderItem existing = lineFor(part);
         if (existing != null) {
             existing.setQuantity(existing.getQuantity() + quantity);
