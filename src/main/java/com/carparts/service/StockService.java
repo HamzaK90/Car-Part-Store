@@ -103,7 +103,12 @@ public class StockService {
         }
         WarehouseStock row = locked.getFirst();
         if (row.getQuantity() > 0) {
-            throw new InvalidRequestException(
+            // 409, not 400, for the reason InsufficientStockException gives: the request is
+            // not malformed, the shelf simply is not empty, and the same request succeeds once
+            // the units are moved. A 400 sends the caller off to fix a request that was fine.
+            // IllegalStateException is the route to it — the domain refusing an operation, as
+            // when an already-cancelled order is asked to be fulfilled.
+            throw new IllegalStateException(
                     "warehouse " + warehouseId + " still holds " + row.getQuantity()
                             + " of part " + partId + "; move or write them off first");
         }
