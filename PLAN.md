@@ -55,7 +55,7 @@ storing a second copy that could disagree.
 
 ## Steps
 
-### 0 — Scaffold ✅
+### 0 — Scaffold — done
 - [x] `git init`, `.gitignore`, `.env.example`
 - [x] MIT `LICENSE`
 - [x] `pom.xml` + Maven wrapper
@@ -68,7 +68,7 @@ storing a second copy that could disagree.
 - [x] `README.md` — an interim one covering what actually works. The full version, with the
       endpoint table and Swagger screenshot, waits for step 10 and an API that exists
 
-**Gate:** ✅ `./mvnw -B -DskipTests compile` → BUILD SUCCESS.
+**Gate (met):** `./mvnw -B -DskipTests compile` → BUILD SUCCESS.
 
 ### 1 — Diagrams
 - [x] `docs/diagrams/erd.drawio` — entity relationship diagram
@@ -108,7 +108,7 @@ asked once the transaction has finished speaking. The consequence is that **V6 m
 inside a transaction**, which Flyway always provides; replaying it by hand needs
 `psql --single-transaction`.
 
-**Gate:** ✅ drop and re-migrate from empty — V1–V5 apply in order against PostgreSQL 16
+**Gate (met):** drop and re-migrate from empty — V1–V5 apply in order against PostgreSQL 16
 with no errors, and 15 constraint assertions pass: both-subtype department, negative
 salary, negative stock, warehouse staff on a branch order, a warehouse used as a sales
 location, a branch holding stock, an outsider named as manager, a manager transferred out,
@@ -145,7 +145,7 @@ Consequences that come with running everywhere:
 - Business rows stay deterministic; only the five hash values differ per environment,
   which is the security property rather than a defect.
 
-### 4 — Domain + repositories ✅
+### 4 — Domain + repositories — done
 - [x] Entities, `@Embeddable Address`, enums, `@Inheritance(JOINED)` on `Department`
 - [x] **Every enum field needs two annotations**, or `ddl-auto: validate` refuses to start:
 
@@ -161,7 +161,7 @@ Consequences that come with running everywhere:
 - [x] `JpaRepository` per aggregate — 8 interfaces
 - [x] `ReportingRepository` — `JdbcClient` over the views, rows mapped onto records
 
-**Gate:** ✅ the application starts against a real PostgreSQL 16 with `ddl-auto: validate`,
+**Gate (met):** the application starts against a real PostgreSQL 16 with `ddl-auto: validate`,
 so every mapping was checked against the actual schema and every Spring Data query parsed
 at bootstrap.
 
@@ -193,12 +193,12 @@ A bug this gate caught: `PartRepository.search()` passed a null search term into
 unfiltered `GET /api/parts` would have failed with *function lower(bytea) does not exist*.
 An absent term now becomes `%`.
 
-### 5 — Services ✅
+### 5 — Services — done
 - [x] `OrderService.placeOrder` as one `@Transactional` unit:
       validate → `SELECT … FOR UPDATE` stock → reject if short → capture `unit_price` →
       insert order + items → decrement stock
 
-**Gate:** ✅ ten assertions against a real PostgreSQL 16, including two concurrent orders
+**Gate (met):** ten assertions against a real PostgreSQL 16, including two concurrent orders
 for the last unit where exactly one succeeds.
 
 - **The handler is a method parameter, not a field of `PlaceOrderCommand`.** A request body
@@ -227,14 +227,14 @@ own with realistic cardinality.
 
 | Category | Endpoints | State |
 |---|---|---|
-| foundation — error handling, DTOs, OpenAPI, interim security | — | ✅ |
-| orders | 5 | ✅ |
-| parts | 7 | ✅ |
-| warehouses + stock | 6 | ✅ |
-| departments | 5 | ✅ |
-| employees | 6 | ✅ |
-| customers + suppliers | 10 | ✅ |
-| reports | 4 | ✅ |
+| foundation — error handling, DTOs, OpenAPI, interim security | — | done |
+| orders | 5 | done |
+| parts | 7 | done |
+| warehouses + stock | 6 | done |
+| departments | 5 | done |
+| employees | 6 | done |
+| customers + suppliers | 10 | done |
+| reports | 4 | done |
 | `docs/api.md`, `docs/api-roadmap.md` | | held for the final PR, when they describe endpoints that exist |
 
 **Carried out of step 6, deliberately.** Each item spans categories already merged, so fixing it
@@ -308,7 +308,7 @@ Decisions worth keeping:
   department that still had staff returned a `409` reading *"that department does not exist"*.
   Each constraint message describes the direction it can actually be seen in.
 
-### 7 — Security ✅
+### 7 — Security — done
 - [x] `SecurityFilterChain`, stateless, `JwtAuthFilter`, BCrypt cost 12
 - [x] `@PreAuthorize` — **administrative** writes and all of `/api/employees` require `ADMIN`.
       Not every write: a salesperson must place orders and warehouse staff must receive stock,
@@ -363,7 +363,7 @@ Decisions worth keeping:
 - **Authorisation runs before the work.** A forbidden call against a row that does not exist
   answers 403, not 404, so the API cannot be used to probe for what exists.
 
-### 8 — Invoice PDF ✅
+### 8 — Invoice PDF — done
 - [x] `GET /api/orders/{id}/invoice.pdf` — Thymeleaf → openhtmltopdf
 
 Decisions worth keeping:
@@ -386,7 +386,7 @@ Decisions worth keeping:
   from objects already in hand. Views answer across rows nothing has loaded; this was the
   wrong side of that rule, and it had no caller from step 4 until it was deleted.
 
-### 9 — Tests
+### 9 — Tests — done
 - [x] Integration tests on embedded PostgreSQL running the real migrations
 - [x] Constraint tests — the database rejects negative salary, a both-subtype department,
       oversold stock, a warehouse employee on a branch order, a branch holding stock, a
@@ -416,10 +416,16 @@ Decisions worth keeping:
 
 Result: 210 test methods, 260 executions, 96% instructions / 90% branches.
 
-### 10 — Documentation
-- [ ] GitHub Actions: `mvnw verify` on push/PR
-- [ ] README: overview, ERD, quickstart, endpoint table, Swagger screenshot, design notes
-- [ ] `docs/normalization.md`
+### 10 — Documentation — done
+- [x] GitHub Actions: `mvnw verify` on push and pull request
+- [x] `README.md`: status, quickstart, what is interesting, layout
+- [x] `docs/architecture.md`: layers, security, errors, known gaps
+- [x] `docs/api.md`: every endpoint, its parameters, and who may call it
+- [x] `docs/database.md`: schema design decisions, constraints, views, triggers
+- [x] `docs/testing.md`: what is tested, how, and what it found
+
+Normalization is covered inside `docs/database.md` rather than as a separate file — the
+subtype design and the no-derived-columns rule are the whole of what it would have said.
 
 ---
 
@@ -451,14 +457,14 @@ becomes ordered minus paid.
 
 All six are met and verified over HTTP against PostgreSQL 16, on a cluster built from scratch.
 
-1. ✅ Login returns a JWT. No token → 401. Wrong role → 403.
-2. ✅ Placing an order decrements warehouse stock — 30 → 26 for a line of four.
-3. ✅ Ordering more than available → 409 naming the part, the quantity asked and the quantity
+1. (met) Login returns a JWT. No token → 401. Wrong role → 403.
+2. (met) Placing an order decrements warehouse stock — 30 → 26 for a line of four.
+3. (met) Ordering more than available → 409 naming the part, the quantity asked and the quantity
    available, with stock unchanged afterwards.
-4. ✅ An invoice total is unaffected by a later change to `part.price` — repriced 45 → 999, the
+4. (met) An invoice total is unaffected by a later change to `part.price` — repriced 45 → 999, the
    settled order held at 180.00 because the line kept the price captured at sale.
-5. ✅ A warehouse employee cannot handle a branch order. Now that the handler comes from the
+5. (met) A warehouse employee cannot handle a branch order. Now that the handler comes from the
    token, this is a warehouse-staff account being refused with a message naming them and the
    branch — and supplying an `employeeId` in the body does not get around it.
-6. ✅ A negative salary is refused twice over: `400` from Bean Validation before it reaches the
+6. (met) A negative salary is refused twice over: `400` from Bean Validation before it reaches the
    database, and `ck_employee_salary` if anything writes the row directly.
