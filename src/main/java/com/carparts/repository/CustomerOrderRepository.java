@@ -13,7 +13,9 @@ import org.springframework.data.repository.query.Param;
 
 public interface CustomerOrderRepository extends JpaRepository<CustomerOrder, Long> {
 
-    List<CustomerOrder> findByCustomerId(Long customerId);
+    // No findByCustomerId. GET /api/orders?customerId= answers it through search(), paged and
+    // in two queries; the sub-resource that used this was removed in step 6 because it returned
+    // every order a customer had ever placed, unpaged, at about six queries per order.
 
     /**
      * An order with everything an invoice needs, in one query.
