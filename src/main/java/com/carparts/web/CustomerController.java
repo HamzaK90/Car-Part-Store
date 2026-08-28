@@ -12,7 +12,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.net.URI;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -37,8 +37,6 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Customers", description = "People who buy parts")
 public class CustomerController {
 
-    private static final int MAX_PAGE_SIZE = 100;
-
     private final CustomerService service;
     private final CustomerRepository customers;
 
@@ -62,8 +60,7 @@ public class CustomerController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
 
-        PageRequest pageable = PageRequest.of(
-                Math.max(page, 0), Math.clamp(size, 1, MAX_PAGE_SIZE), Sort.by("name"));
+        Pageable pageable = Paging.of(page, size, Sort.by("name"), "id");
 
         return customers.search(search, pageable).map(CustomerResponse::from);
     }

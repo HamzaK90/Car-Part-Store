@@ -18,7 +18,7 @@ import java.math.BigDecimal;
 import java.net.URI;
 import java.util.List;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -41,8 +41,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/parts")
 @Tag(name = "Parts", description = "The catalogue, and which cars each part fits")
 public class PartController {
-
-    private static final int MAX_PAGE_SIZE = 100;
 
     private final PartRepository parts;
     private final PartService service;
@@ -97,8 +95,7 @@ public class PartController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
 
-        PageRequest pageable = PageRequest.of(
-                Math.max(page, 0), Math.clamp(size, 1, MAX_PAGE_SIZE), sort.toSort());
+        Pageable pageable = Paging.of(page, size, sort.toSort(), "id");
 
         return parts.search(search, supplierId, minPrice, maxPrice, make, model, year, pageable)
                 .map(PartResponse::from);

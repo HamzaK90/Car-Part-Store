@@ -32,11 +32,15 @@ public final class Text {
      * from, so {@code LOWER(?)} fails with <em>function lower(bytea) does not exist</em> before
      * a single row is examined. Passing {@code %} instead of null is what avoids that.
      *
-     * <p>{@code PartRepository} still builds this inline. Folding it in here belongs with the
-     * wider tidy-up of the paging and address duplication, once every category has shipped.
      */
     public static String likePattern(String search) {
-        String term = blankToNull(search);
-        return term == null ? "%" : "%" + term.toLowerCase() + "%";
+        String term = lowerOrNull(search);
+        return term == null ? "%" : "%" + term + "%";
+    }
+
+    /** As {@link #blankToNull}, lowercased, for a value being compared rather than stored. */
+    public static String lowerOrNull(String value) {
+        String stripped = blankToNull(value);
+        return stripped == null ? null : stripped.toLowerCase();
     }
 }

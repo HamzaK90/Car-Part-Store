@@ -13,7 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.net.URI;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -38,8 +38,6 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Employees", description = "Staff, and where they work")
 public class EmployeeController {
 
-    private static final int MAX_PAGE_SIZE = 100;
-
     private final EmployeeService service;
     private final EmployeeRepository employees;
 
@@ -63,8 +61,7 @@ public class EmployeeController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
 
-        PageRequest pageable = PageRequest.of(
-                Math.max(page, 0), Math.clamp(size, 1, MAX_PAGE_SIZE), Sort.by("fullName"));
+        Pageable pageable = Paging.of(page, size, Sort.by("fullName"), "id");
 
         return employees.search(departmentId, pageable).map(EmployeeResponse::from);
     }

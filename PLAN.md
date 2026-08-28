@@ -220,9 +220,10 @@ Exceptions for step 6 to map: `NotFoundException` → 404, `InvalidOrderExceptio
 
 ### 6 — REST layer
 
-Delivered one API category at a time, each reviewed before it is committed. Splitting it this
-way is what let each category be measured on its own; three of the four defects below were
-invisible until the category was looked at by itself.
+Delivered one API category at a time, each reviewed and measured before it was committed —
+43 endpoints across eight PRs. Splitting it this way is what made the defects findable: almost
+every one was invisible on demo data and only appeared when that category was looked at on its
+own with realistic cardinality.
 
 | Category | Endpoints | State |
 |---|---|---|
@@ -235,6 +236,17 @@ invisible until the category was looked at by itself.
 | customers + suppliers | 10 | ✅ |
 | reports | 4 | ✅ |
 | `docs/api.md`, `docs/api-roadmap.md` | | held for the final PR, when they describe endpoints that exist |
+
+**Carried out of step 6, deliberately.** Each item spans categories already merged, so fixing it
+inside any one of them would have made that PR a cross-cutting change nobody asked for. One pass
+now that every category has shipped:
+
+| | Where | Why it waited |
+|---|---|---|
+| `MAX_PAGE_SIZE` and the page/size clamp, written out identically | 7 controllers | a cap only protects the server if every copy has it, and the one endpoint that shipped without one returned every stock row a warehouse held |
+| The `LIKE`-pattern widening that avoids the `lower(bytea)` trap | 3 repositories | three copies of one subtle workaround is three chances to drift |
+| The partial-`Address` merge | 2 services | `Address` is one value; the four-way null dance belongs on it |
+| A unique tiebreaker on paged sorts | `/api/parts`, `/api/customers`, `/api/employees` | same defect as `low-stock`; `name`, `fullName` and `price` are not unique. `/api/suppliers` and `/api/departments` are safe on unique constraints, and the stock listing is filtered to one warehouse |
 
 - [x] Controllers returning DTO records
 - [x] `@ControllerAdvice` → RFC 7807 `ProblemDetail`
@@ -263,6 +275,12 @@ Decisions worth keeping:
   stock a row per warehouse-and-part; both grow with trade and never shrink, so both are paged.
   `v_customer_revenue` reads `FROM customer LEFT JOIN`, so it would have returned every customer
   on the books in one array — the same defect as the original stock listing.
+- **An offset-paged query must close its `ORDER BY` on a unique column.** `LIMIT/OFFSET` across
+  a tie has no defined order between pages, so a tied row can appear twice and another never at
+  all — while the total still reports both. Measured on `low-stock`, whose rows are a warehouse
+  *and* a part: the same SKU appears once per warehouse holding it short, so
+  `ORDER BY shortfall DESC, sku` ties. Ten rows paged two at a time returned nine distinct.
+  `OrderSort` had appended `order_id` to every ordering from the start for this reason.
 - **Every listing is paged and capped.** A bare `List` return type is the tell. Each category has
   had exactly one N+1 in its listing and each was invisible on demo data, so a list query is
   counted at the database against realistic cardinality before the category is called done.

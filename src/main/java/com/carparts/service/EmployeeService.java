@@ -115,12 +115,7 @@ public class EmployeeService {
             employee.setWorkShift(workShift);
         }
         if (city != null || street != null) {
-            // The address is one embedded value, not two columns that move independently: a
-            // request naming only the city would otherwise erase the street it did not mention.
-            Address current = employee.getAddress();
-            employee.setAddress(new Address(
-                    city != null ? city : (current == null ? null : current.getCity()),
-                    street != null ? street : (current == null ? null : current.getStreet())));
+            employee.setAddress(Address.merged(employee.getAddress(), city, street));
         }
         return employee;
     }

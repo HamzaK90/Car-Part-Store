@@ -128,12 +128,20 @@ public class OrderService {
      * records that it reached the customer. Decrementing again here would double-count, which is
      * exactly the mistake this method exists to not make.
      *
+     * <p>Loaded with {@code findByIdWithItems} rather than {@code findById}, as {@link #cancel}
+     * and {@link #amendLines} already were. Fulfilment itself needs nothing but the status, so a
+     * plain finder looked sufficient — but the caller is handed the whole order back, and
+     * {@code open-in-view} is disabled, so rendering it walked a lazy customer proxy after this
+     * transaction had closed and threw. The write had already committed by then, so the order
+     * really was fulfilled and the caller was told the server had failed: the worst shape a bug
+     * can take, because retrying looks like the right thing to do and is not.
+     *
      * @throws NotFoundException if there is no such order
      * @throws IllegalStateException if it is no longer PLACED — mapped to 409
      */
     @Transactional
     public CustomerOrder fulfil(Long orderId) {
-        CustomerOrder order = orders.findById(orderId)
+        CustomerOrder order = orders.findByIdWithItems(orderId)
                 .orElseThrow(() -> NotFoundException.of("order", orderId));
         order.fulfil();
         return order;

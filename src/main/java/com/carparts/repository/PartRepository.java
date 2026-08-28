@@ -2,6 +2,7 @@ package com.carparts.repository;
 
 import com.carparts.domain.CarFitment;
 import com.carparts.domain.Part;
+import com.carparts.support.Text;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
@@ -30,15 +31,8 @@ public interface PartRepository extends JpaRepository<Part, Long> {
     default Page<Part> search(String search, Long supplierId, BigDecimal minPrice,
                               BigDecimal maxPrice, String make, String model, Short year,
                               Pageable pageable) {
-        String pattern = (search == null || search.isBlank())
-                ? "%"
-                : "%" + search.strip().toLowerCase() + "%";
-        return searchByPattern(pattern, supplierId, minPrice, maxPrice,
-                blankToNull(make), blankToNull(model), year, pageable);
-    }
-
-    private static String blankToNull(String s) {
-        return s == null || s.isBlank() ? null : s.strip().toLowerCase();
+        return searchByPattern(Text.likePattern(search), supplierId, minPrice, maxPrice,
+                Text.lowerOrNull(make), Text.lowerOrNull(model), year, pageable);
     }
 
     /**
