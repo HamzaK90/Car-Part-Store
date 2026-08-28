@@ -9,6 +9,7 @@ import com.carparts.repository.ReportingRepository.OrderSort;
 import com.carparts.repository.ReportingRepository.OrderSummary;
 import com.carparts.security.AuthenticatedUser;
 import com.carparts.service.NotFoundException;
+import com.carparts.service.InvoiceService;
 import com.carparts.service.OrderService;
 import com.carparts.service.PlaceOrderCommand;
 import com.carparts.web.dto.Requests.AmendOrderRequest;
@@ -28,6 +29,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -57,13 +60,16 @@ public class OrderController {
     private final OrderService orderService;
     private final CustomerOrderRepository orders;
     private final ReportingRepository reporting;
+    private final InvoiceService invoices;
 
     public OrderController(OrderService orderService,
                            CustomerOrderRepository orders,
-                           ReportingRepository reporting) {
+                           ReportingRepository reporting,
+                           InvoiceService invoices) {
         this.orderService = orderService;
         this.orders = orders;
         this.reporting = reporting;
+        this.invoices = invoices;
     }
 
     /**
@@ -203,6 +209,30 @@ public class OrderController {
                description = "Returns the parts to warehouse stock. Only a PLACED order can be cancelled.")
     public OrderResponse cancel(@PathVariable Long id) {
         return OrderResponse.from(orderService.cancel(id));
+    }
+
+    /**
+     * The order as a printable invoice.
+     *
+     * <p>Open to any authenticated member of staff, like every other way of reading an order.
+     * A cancelled order still has one: the document says so and explains that the parts went
+     * back to stock, because an invoice that simply vanishes leaves nothing to reconcile
+     * against.
+     *
+     * <p>{@code inline} rather than {@code attachment} so a browser shows it instead of
+     * downloading it, with a filename for when somebody does save it.
+     */
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping(value = "/{id}/invoice.pdf", produces = MediaType.APPLICATION_PDF_VALUE)
+    @Operation(summary = "Download an order's invoice",
+               description = "A PDF. Lines are billed at the price captured when the order was placed.")
+    public ResponseEntity<byte[]> invoice(@PathVariable Long id) {
+        byte[] pdf = invoices.render(id);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "inline; filename=\"invoice-" + id + ".pdf\"")
+                .body(pdf);
     }
 
     /**

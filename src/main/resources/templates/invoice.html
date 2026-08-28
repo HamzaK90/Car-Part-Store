@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <title th:text="'Invoice ' + ${invoice.number}">Invoice</title>
+  <style>
+    /* openhtmltopdf lays out for print, so sizes are in points and there is no viewport.
+       @page is what gives the document its margins; a stylesheet written for a screen
+       would render edge to edge. */
+    @page { size: A4; margin: 22mm 18mm; }
+
+    /* No letter-spacing anywhere. openhtmltopdf implements tracking by positioning each
+       glyph separately, which leaves the PDF's text layer reading "C A N C E L L E D" — so
+       searching or copying the document fails on exactly the words that matter most on an
+       invoice. Tracking is cosmetic; searchable text is not. */
+    body  { font-family: Helvetica, Arial, sans-serif; font-size: 10pt; color: #1a1a1a; }
+    h1    { font-size: 20pt; margin: 0 0 2pt 0; }
+    .muted{ color: #6b6b6b; }
+
+    .head        { border-bottom: 1.5pt solid #1a1a1a; padding-bottom: 8pt; margin-bottom: 14pt; }
+    .head td     { vertical-align: top; }
+    .head .right { text-align: right; }
+
+    .parties        { width: 100%; margin-bottom: 16pt; }
+    .parties td     { vertical-align: top; width: 50%; padding-right: 12pt; }
+    .label          { font-size: 8pt; text-transform: uppercase;
+                      color: #6b6b6b; margin-bottom: 3pt; }
+
+    table.lines            { width: 100%; border-collapse: collapse; }
+    table.lines th         { font-size: 8pt; text-transform: uppercase;
+                             text-align: left; border-bottom: 0.8pt solid #1a1a1a;
+                             padding: 0 4pt 5pt 0; }
+    table.lines td         { padding: 6pt 4pt 6pt 0; border-bottom: 0.4pt solid #ddd; }
+    table.lines .num       { text-align: right; padding-right: 0; }
+    table.lines tr.total td{ border-bottom: none; border-top: 1.2pt solid #1a1a1a;
+                             padding-top: 8pt; font-weight: bold; font-size: 12pt; }
+
+    .status       { display: inline-block; padding: 2pt 6pt; font-size: 8pt; font-weight: bold; border: 0.8pt solid #1a1a1a; }
+    .cancelled    { color: #a11; border-color: #a11; }
+
+    .note { margin-top: 20pt; padding-top: 8pt; border-top: 0.4pt solid #ddd;
+            font-size: 8pt; color: #6b6b6b; }
+  </style>
+</head>
+<body>
+
+<table class="head" style="width:100%">
+  <tr>
+    <td>
+      <h1>Invoice</h1>
+      <div class="muted" th:text="'No. ' + ${invoice.number}">No. 1001</div>
+    </td>
+    <td class="right">
+      <div th:text="${invoice.branchName}">Downtown Branch</div>
+      <div class="muted" th:if="${invoice.branchAddress}" th:text="${invoice.branchAddress}">Amman</div>
+      <div class="muted" th:text="${invoice.date}">2026-01-01</div>
+      <div style="margin-top:6pt">
+        <span class="status" th:classappend="${invoice.cancelled} ? 'cancelled'"
+              th:text="${invoice.status}">PLACED</span>
+      </div>
+    </td>
+  </tr>
+</table>
+
+<table class="parties">
+  <tr>
+    <td>
+      <div class="label">Billed to</div>
+      <div th:text="${invoice.customerName}">Ahmad Sweidan</div>
+      <div class="muted" th:text="${invoice.customerPhone}">0790000001</div>
+      <div class="muted" th:if="${invoice.customerEmail}" th:text="${invoice.customerEmail}"></div>
+    </td>
+    <td>
+      <div class="label">Fulfilled from</div>
+      <div th:text="${invoice.warehouseName}">Zarqa Warehouse</div>
+      <!-- An order may have no named handler: app_user.employee_id is nullable for an
+           administrative or service account, so the invoice prints without one rather than
+           inventing a name. -->
+      <div class="muted" th:if="${invoice.handlerName}" th:text="'Served by ' + ${invoice.handlerName}"></div>
+    </td>
+  </tr>
+</table>
+
+<table class="lines">
+  <thead>
+  <tr>
+    <th style="width:22%">SKU</th>
+    <th>Part</th>
+    <th class="num" style="width:10%">Qty</th>
+    <th class="num" style="width:17%">Unit price</th>
+    <th class="num" style="width:17%">Amount</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr th:each="line : ${invoice.lines}">
+    <td th:text="${line.sku}">BRK-1001</td>
+    <td th:text="${line.name}">Brake pad set</td>
+    <td class="num" th:text="${line.quantity}">2</td>
+    <td class="num" th:text="${line.unitPrice}">45.00</td>
+    <td class="num" th:text="${line.amount}">90.00</td>
+  </tr>
+  <tr class="total">
+    <td colspan="3"></td>
+    <td class="num">Total</td>
+    <td class="num" th:text="${invoice.total}">180.00</td>
+  </tr>
+  </tbody>
+</table>
+
+<div class="note">
+  <!-- The wording is not decoration. unit_price is captured when the order is placed and
+       never read back from the catalogue, which is what stops a later reprice moving a
+       settled invoice. Saying so on the document explains why a figure here may differ from
+       today's catalogue price. -->
+  Each line is billed at the price agreed when the order was placed. Later changes to the
+  catalogue price do not affect this invoice.
+  <div th:if="${invoice.cancelled}" style="margin-top:4pt; color:#a11;">
+    This order was cancelled and the parts were returned to stock. Retained for the record.
+  </div>
+</div>
+
+</body>
+</html>
