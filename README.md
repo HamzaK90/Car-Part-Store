@@ -1,5 +1,10 @@
 # Car Parts Store
 
+[![CI](https://github.com/HamzaK90/Car-Part-Store/actions/workflows/ci.yml/badge.svg)](https://github.com/HamzaK90/Car-Part-Store/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/badge/tests-260%20passing-brightgreen)](docs/testing.md)
+[![Coverage](https://img.shields.io/badge/coverage-96%25%20instructions%20%C2%B7%2090%25%20branches-brightgreen)](docs/testing.md)
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
 A REST API for a car parts retail business — customers, branches, warehouses, staff,
 suppliers, a parts catalogue, stock, and orders.
 
@@ -10,7 +15,8 @@ Spring Security with JWT · springdoc-openapi · Maven
 
 ## Status
 
-Complete.
+Complete and runnable. Clone it, point it at a PostgreSQL database, and you have a working
+shop with staff, stock and orders to explore — see [Running it](#running-it).
 
 | | |
 |---|---|
@@ -39,7 +45,7 @@ not H2. A full CI run takes about a minute.
 | [docs/database.md](docs/database.md) | the schema — design decisions, constraints, views, triggers |
 | [docs/testing.md](docs/testing.md) | what is tested, how, and what was found |
 | [PLAN.md](PLAN.md) | the roadmap this was built against |
-| [docs/diagrams/](docs/diagrams/) | ERD, class diagram, order sequence — editable draw.io |
+| [docs/diagrams/](docs/diagrams/) | ERD, class diagram, order sequence — shown below |
 
 ---
 
@@ -75,9 +81,9 @@ You also need a signing secret for the JWTs, at least 32 bytes:
 openssl rand -base64 48
 ```
 
-It has no default on purpose. An unset, too-short or unresolved `JWT_SECRET` stops the
-application at start-up with a message naming the property — a fallback secret is a published
-secret.
+Any value of 32 bytes or more works. There is deliberately no default, so if the secret is
+missing or too short the application says so by name at start-up rather than falling back to
+something guessable — a fallback secret is a published secret.
 
 Deployments set the environment variables named in [`.env.example`](.env.example) instead.
 Spring Boot does not read `.env` files itself; the `local` profile is the mechanism for
@@ -89,12 +95,15 @@ development.
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=local
 ```
 
-Flyway applies `V1`–`V6` on start-up, creating the schema and the demo dataset. Hibernate then
-validates every entity mapping against it, so a mismatch fails the start rather than surfacing
-later.
+Flyway applies `V1`–`V6` on start-up, building the schema and loading the demo dataset for you
+— there is no other setup step. Hibernate then validates every entity mapping against the
+schema it just built, so you find out at start-up if anything is out of step.
 
 Then open <http://localhost:8080/swagger-ui>, log in through `POST /api/auth/login` with one of
 the demo accounts, and paste the token into **Authorize**.
+
+You now have the full demo shop to explore. See
+[Demo data and accounts](#demo-data-and-accounts) for who to log in as and what to try.
 
 **4. Run the tests**
 
@@ -102,7 +111,9 @@ the demo accounts, and paste the token into **Authorize**.
 ./mvnw verify
 ```
 
-No database setup needed — the suite starts its own PostgreSQL.
+No database setup needed for this — the suite starts its own PostgreSQL, applies the same
+migrations and runs all 260 tests against it. This is exactly what CI runs on every push, and
+it takes about a minute.
 
 ---
 
@@ -133,6 +144,30 @@ while the parts listing quietly goes from 2 queries to 14. Only that test fails.
 
 ---
 
+## Diagrams
+
+**Entity relationship diagram.** The 12 tables, the disjoint subtypes, and a legend explaining
+each decision.
+
+![Entity relationship diagram](docs/diagrams/erd.png)
+
+**Domain model.** The JPA entities, their associations, and the behaviour that lives on them.
+
+![Domain model class diagram](docs/diagrams/uml-class.png)
+
+**Placing an order.** One transaction, from the request through the row locks and back.
+
+![Order placement sequence diagram](docs/diagrams/order-sequence.png)
+
+The `.drawio` files beside these images are the editable sources. After changing one, re-export
+it with the draw.io desktop app:
+
+```bash
+draw.io --export --format png --border 16 --width 2000 --theme light   --output docs/diagrams/erd.png docs/diagrams/erd.drawio
+```
+
+---
+
 ## Layout
 
 ```
@@ -158,14 +193,40 @@ src/test/java/com/carparts/        210 tests against a real PostgreSQL
 
 ---
 
-## Notes
+## Demo data and accounts
 
-Demo credentials are **not** in this repository. `V6` takes its password hashes from Flyway
-placeholders resolved from the environment, and neither has a default — an unset variable
-fails the migration rather than seeding an account whose password could be read here.
+The project ships with a complete working dataset, so it does something interesting the moment
+it starts. Following [Running it](#running-it) gives you a shop with:
 
-`V6` also seeds ADMIN accounts and fake business data into whatever database it is pointed at.
-A deployment that does not want demo data must exclude it deliberately.
+| | |
+|---|---|
+| 4 departments | 2 branches and 2 warehouses |
+| 8 staff | across both branches and both warehouses, some managing a department |
+| 10 parts | from 3 suppliers, with 17 car fitments to search by |
+| 18 stock rows | including some deliberately below their reorder level |
+| 5 orders | placed, fulfilled and cancelled, with 9 lines between them |
+| 4 customers | with revenue you can report on |
+
+**You choose the passwords.** The five demo logins take their password from two values you
+supply at setup — that is the `bcrypt` step in [Running it](#running-it). Nothing secret is
+committed here, and the accounts are yours the moment you pick them.
+
+| Username | Role | Useful for |
+|---|---|---|
+| `layla` | ADMIN | Everything — she is also employee 1, at a branch |
+| `omar` | EMPLOYEE | A salesperson at Downtown Branch: placing and fulfilling orders |
+| `rana` | EMPLOYEE | A salesperson at Airport Road Branch — try placing an order for Omar's branch and watch it be refused |
+| `admin` | ADMIN | An account with nobody on the payroll behind it, so orders record no handler |
+| `svc-reporting` | EMPLOYEE | Disabled on purpose, for seeing a refused login |
+
+Both `layla` and `omar` are worth logging in as: the same request often succeeds for one and
+is refused for the other, which is the quickest way to see the authorisation rules working.
+
+Once you are in, `GET /api/parts?make=Toyota&model=Corolla&year=2017` is the question this
+whole schema exists to answer.
+
+**If you are deploying this rather than trying it**, exclude `V6` — it seeds ADMIN accounts and
+fake business data into whatever database it is pointed at.
 
 ---
 
