@@ -387,24 +387,34 @@ Decisions worth keeping:
   wrong side of that rule, and it had no caller from step 4 until it was deleted.
 
 ### 9 — Tests
-- [ ] Integration tests on embedded PostgreSQL running the real migrations
-- [ ] Constraint tests — the database rejects negative salary, a both-subtype department,
+- [x] Integration tests on embedded PostgreSQL running the real migrations
+- [x] Constraint tests — the database rejects negative salary, a both-subtype department,
       oversold stock, a warehouse employee on a branch order, a branch holding stock, a
       warehouse used as a sales location, an outsider named as manager, a plaintext
       password, a zero-quantity line, the same part twice on one order, and an inverted
-      fitment year range. Port the 14 assertions already proven by hand.
-- [ ] Behaviour tests — transferring or deleting a manager vacates the post and the
+      fitment year range. All 14 hand-proven assertions ported, plus 8 more.
+- [x] Behaviour tests — transferring or deleting a manager vacates the post and the
       department surfaces in `v_department_without_manager`; repricing a part leaves an
       existing order total unmoved
-- [ ] Concurrency test — two orders for the last unit, exactly one succeeds. Proven by hand
-      at step 5; port it. It must **not** be `@Transactional`: a test-level transaction makes
-      both calls share one, so the row lock is never contended and the test passes while
-      proving nothing.
-- [ ] Port the step-5 order assertions: oversell leaves stock untouched, every shortage is
+- [x] Concurrency test — two orders for the last unit, exactly one succeeds. Not
+      `@Transactional`, for the reason given: a test-level transaction makes both calls share
+      one, the row lock is never contended, and the test passes while proving nothing.
+- [x] Port the step-5 order assertions: oversell leaves stock untouched, every shortage is
       reported, duplicate lines are summed, warehouse staff cannot handle a branch order, a
       warehouse id given as the branch is a 404
-- [ ] `MockMvc` auth tests — 401 / 403 / 200
-- [ ] JaCoCo report
+- [x] `MockMvc` auth tests — 401 / 403 / 200
+- [x] JaCoCo report, with a floor enforced at `verify`: 92% instructions, 85% branches,
+      98% classes. Branch as well as instruction, because instruction coverage alone is
+      satisfied by a test that calls a method and asserts nothing about it.
+- [x] Domain unit tests — every entity's invariants, and the identity contract across all
+      eleven, including that an entity equals its own lazy proxy
+- [x] Service-level tests for the guards Bean Validation shields from HTTP
+- [x] Error-response tests — 400/401/403/404/405/409/500 shapes, and every mapped
+      constraint name checked against the schema Flyway built
+- [x] **Query-count regression tests.** The check that found more defects here than any
+      other, previously manual. See the note in `CLAUDE-HANDOFF.md` §4.
+
+Result: 210 test methods, 260 executions, 96% instructions / 90% branches.
 
 ### 10 — Documentation
 - [ ] GitHub Actions: `mvnw verify` on push/PR

@@ -71,6 +71,7 @@ public class WarehouseStock {
      *     the constraint remains the thing that actually guarantees it.
      */
     public void decrease(int amount) {
+        requirePositive(amount, "take");
         if (amount > quantity) {
             throw new IllegalArgumentException(
                     "cannot take " + amount + " of part " + id.getPartId() + "; only " + quantity + " in stock");
@@ -79,7 +80,20 @@ public class WarehouseStock {
     }
 
     public void increase(int amount) {
+        // Guarded, though it looks like it needs no guard. Without this, increase(-5) quietly
+        // takes five units off the shelf: ck_warehouse_stock_quantity only objects if the
+        // result crosses zero, so a negative "delivery" against a full shelf leaves no trace
+        // anywhere. The service layer refuses it on the way in, but a rule worth having is one
+        // that holds however the object is reached.
+        requirePositive(amount, "add");
         quantity += amount;
+    }
+
+    private static void requirePositive(int amount, String verb) {
+        if (amount <= 0) {
+            throw new IllegalArgumentException(
+                    "cannot " + verb + " " + amount + " units; the amount must be positive");
+        }
     }
 
     /** True when this row has fallen below its part's reorder level. */
