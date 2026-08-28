@@ -7,6 +7,7 @@ import com.carparts.repository.ReportingRepository;
 import com.carparts.repository.ReportingRepository.OrderFilter;
 import com.carparts.repository.ReportingRepository.OrderSort;
 import com.carparts.repository.ReportingRepository.OrderSummary;
+import com.carparts.security.AuthenticatedUser;
 import com.carparts.service.NotFoundException;
 import com.carparts.service.OrderService;
 import com.carparts.service.PlaceOrderCommand;
@@ -26,6 +27,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -67,22 +69,25 @@ public class OrderController {
     /**
      * Places an order and takes the parts out of stock, in one transaction.
      *
-     * <p>The handling employee is not read from the body. Step 7 will take it from the
-     * authenticated session; until then an order simply has no named handler. Wiring it from the
-     * request would let a salesperson record an order as handled by a colleague.
+     * <p>The handling employee comes from the token, never the body — see {@link #handlerFor}.
+     * Wiring it from the request would let a salesperson record an order as handled by a
+     * colleague, so {@code PlaceOrderRequest} has no field to say it in.
      */
     @PreAuthorize("isAuthenticated()")
     @PostMapping
     @Operation(summary = "Place an order",
-               description = "Decrements warehouse stock and captures each part's price at sale.")
-    public ResponseEntity<OrderResponse> place(@Valid @RequestBody PlaceOrderRequest request) {
+               description = "Decrements warehouse stock and captures each part's price at sale. "
+                       + "The handling employee is taken from your token, not the body, and must "
+                       + "work at the branch named.")
+    public ResponseEntity<OrderResponse> place(@Valid @RequestBody PlaceOrderRequest request,
+                                               @AuthenticationPrincipal AuthenticatedUser caller) {
         PlaceOrderCommand command = new PlaceOrderCommand(
                 request.customerId(), request.branchId(), request.warehouseId(),
                 request.lines().stream()
                         .map(l -> new PlaceOrderCommand.Line(l.partId(), l.quantity()))
                         .toList());
 
-        CustomerOrder placed = orderService.placeOrder(command, handlerFromSession());
+        CustomerOrder placed = orderService.placeOrder(command, handlerFor(caller));
 
         return ResponseEntity
                 .created(URI.create("/api/orders/" + placed.getId()))
@@ -201,12 +206,31 @@ public class OrderController {
     }
 
     /**
-     * Who is placing this order. Null until step 7 puts a real identity behind the request.
+     * The employee behind this request, or null when there is nobody on the payroll.
      *
-     * <p>A method rather than a literal so there is one obvious place to change it, and so the
-     * absence reads as deliberate rather than as a forgotten argument.
+     * <p>Taken from the token, never from the body — which is why {@code PlaceOrderRequest} has
+     * no employee field at all. Leaving it out of the record is what makes it structural: a
+     * salesperson cannot record an order as handled by a colleague, because there is nowhere in
+     * the request to say so.
+     *
+     * <p>Null is a legitimate answer. {@code app_user.employee_id} is nullable for an account
+     * that belongs to nobody on the payroll — an administrator or an integration — and
+     * {@code customer_order.employee_id} is nullable to match, which V6 exercises with an order
+     * seeded as "taken without a named salesperson". Such a caller may still place an order; it
+     * simply records no handler rather than being refused.
+     *
+     * <p>When a handler <em>is</em> named, {@code OrderService.resolveHandler} insists they work
+     * at the branch that took the order, and {@code ct_order_employee_at_branch} insists on it
+     * again in the database. That now bites for the first time: before this, the handler was
+     * always null and the rule had nothing to check. Warehouse staff therefore cannot place
+     * branch orders, which is the rule working rather than a regression.
+     *
+     * <p>The null check on {@code caller} is not reachable today — the endpoint requires
+     * authentication, so a principal is always present. It is here because
+     * {@code @AuthenticationPrincipal} yields null on an anonymous request, and an endpoint
+     * opened later should record no handler rather than throw.
      */
-    private Long handlerFromSession() {
-        return null;
+    private Long handlerFor(AuthenticatedUser caller) {
+        return caller == null ? null : caller.employeeId();
     }
 }
