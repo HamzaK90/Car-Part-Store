@@ -1,0 +1,45 @@
+# Configuration for the test run only. The datasource is not here: IntegrationTest starts an
+# embedded PostgreSQL and supplies its URL through @DynamicPropertySource, because the port is
+# not known until it is running.
+
+spring:
+  jpa:
+    # The same setting production uses. It is the point of testing against real PostgreSQL:
+    # every entity mapping is checked against the schema Flyway just built, so a mismatch fails
+    # the run instead of surfacing as a broken query later.
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: false
+
+  flyway:
+    enabled: true
+    placeholders:
+      # V6 takes its password digests as placeholders with no defaults, so an unset variable
+      # fails the migration rather than seeding an account whose password could be read from
+      # the repository. Tests still have to supply something, and a fixed literal is acceptable
+      # HERE and nowhere else: it guards a database that is destroyed when the run ends.
+      #
+      # Cost 4, not 12. BCryptPasswordEncoder reads the work factor from the stored digest, so
+      # this is what every login in the suite pays to verify — 0.9ms against 233ms at cost 12.
+      # Production seeding and any password this application writes still use cost 12, which is
+      # set on the encoder in SecurityConfig and is untouched by this.
+      #
+      # Both digests are of the password below.
+      seed_admin_password_hash: $2a$04$bALtfA.5bLPEwXI0maxfmueBLQOpfU6gWcraTPIF9SqBBRCDzhDjC
+      seed_staff_password_hash: $2a$04$bALtfA.5bLPEwXI0maxfmueBLQOpfU6gWcraTPIF9SqBBRCDzhDjC
+
+security:
+  jwt:
+    # Test-only, and long enough to satisfy the guard in JwtProperties. An unset or short
+    # secret stops the application deliberately, so without this every test would fail while
+    # the context was still loading rather than for any reason a test author would recognise.
+    secret: test-only-signing-secret-not-used-anywhere-outside-the-test-run
+    expiry-minutes: 60
+
+logging:
+  level:
+    org.hibernate.SQL: warn
+    org.flywaydb: warn

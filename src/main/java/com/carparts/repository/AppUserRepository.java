@@ -14,7 +14,9 @@ public interface AppUserRepository extends JpaRepository<AppUser, Long> {
      */
     Optional<AppUser> findByUsername(String username);
 
-    boolean existsByUsername(String username);
-
-    Optional<AppUser> findByEmployeeId(Long employeeId);
+    // No existsByUsername or findByEmployeeId. Neither has had a caller since they were
+    // written. Logging in needs the account itself, not whether one exists, and a pre-check for
+    // a taken username would be a race as well as a duplicate of uq_app_user_username. There is
+    // no user-management endpoint for the employee lookup to serve; when one arrives it can ask
+    // for exactly what it needs.
 }

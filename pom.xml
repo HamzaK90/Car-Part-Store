@@ -22,6 +22,7 @@
         <jjwt.version>0.12.6</jjwt.version>
         <springdoc.version>2.6.0</springdoc.version>
         <openhtmltopdf.version>1.0.10</openhtmltopdf.version>
+        <jacoco.version>0.8.12</jacoco.version>
         <zonky.embedded.version>2.0.7</zonky.embedded.version>
         <zonky.binaries.version>16.2.0</zonky.binaries.version>
     </properties>
@@ -150,6 +151,33 @@
                         <goals>
                             <goal>report</goal>
                         </goals>
+                    </execution>
+                    <!-- A floor, not a target. Set just below where the suite sits so an
+                         accidental gutting of the tests fails the build, while ordinary work
+                         that happens to dip a point does not. Raise it deliberately. -->
+                    <execution>
+                        <id>coverage-floor</id>
+                        <phase>verify</phase>
+                        <goals><goal>check</goal></goals>
+                        <configuration>
+                            <rules>
+                                <rule>
+                                    <element>BUNDLE</element>
+                                    <limits>
+                                        <limit>
+                                            <counter>INSTRUCTION</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.60</minimum>
+                                        </limit>
+                                        <limit>
+                                            <counter>CLASS</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.85</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
