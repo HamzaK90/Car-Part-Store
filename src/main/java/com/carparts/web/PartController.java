@@ -20,6 +20,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -124,6 +125,7 @@ public class PartController {
     }
 
     /** Records that this part fits a car. */
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/{id}/fitments")
     @Operation(summary = "Record a fitment",
                description = "The same make, model and first year cannot be recorded twice.")
@@ -142,6 +144,7 @@ public class PartController {
      * DELETE and a POST. A model staying in production a year longer than expected is the case
      * this exists for.
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}/fitments")
     @Operation(summary = "Correct a fitment's last model year",
                description = "Only yearTo can change; the other fields are the fitment's identity.")
@@ -156,6 +159,7 @@ public class PartController {
     }
 
     /** Removes a fitment, identified by the three fields that key it. */
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}/fitments")
     @Operation(summary = "Remove a fitment")
     public ResponseEntity<Void> removeFitment(
@@ -174,6 +178,7 @@ public class PartController {
      * low-stock report; left at zero the part never reports as low, since stock cannot fall
      * below zero.
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     @Operation(summary = "Add a part", description = "reorderLevel drives the low-stock report.")
     public ResponseEntity<PartResponse> create(@Valid @RequestBody PartRequest request) {
@@ -197,6 +202,7 @@ public class PartController {
      * rewrites what those invoices appear to say. Repricing, by contrast, is safe: each line
      * captured its own price at sale.
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}")
     @Operation(summary = "Update a part",
                description = "Only the fields supplied change. SKU is immutable; repricing never affects existing orders.")
@@ -212,6 +218,7 @@ public class PartController {
      * <p>Refused with 409 once it has been sold or is stocked anywhere. An invoice line pointing
      * at a part that no longer exists would be worse than a catalogue that keeps its history.
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     @Operation(summary = "Remove a part",
                description = "Refused while the part is stocked or appears on any order.")

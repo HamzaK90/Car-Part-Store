@@ -25,6 +25,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -43,6 +44,8 @@ import org.springframework.web.bind.annotation.RestController;
  * associations resolve would quietly reinstate the same thing — along with the query storm it
  * hides. Every method below is handed data already complete: the listing comes back as flat
  * rows, and the single-order read fetches its associations in the query.
+ *
+ * <p><b>Every mutating endpoint here carries an explicit rule.</b> These are operational rather than administrative — taking an order, moving stock — so they are open to any authenticated member of staff rather than to ADMIN alone. Saying {@code isAuthenticated()} out loud is deliberate: it makes an endpoint with <em>no</em> annotation an anomaly a reader can spot, instead of leaving "open to everyone" and "somebody forgot" looking identical. The filter chain already requires authentication for every path, so these add no enforcement today; they are here so that a {@code permitAll} matcher added later cannot silently open a write.
  */
 @RestController
 @RequestMapping("/api/orders")
@@ -68,6 +71,7 @@ public class OrderController {
      * authenticated session; until then an order simply has no named handler. Wiring it from the
      * request would let a salesperson record an order as handled by a colleague.
      */
+    @PreAuthorize("isAuthenticated()")
     @PostMapping
     @Operation(summary = "Place an order",
                description = "Decrements warehouse stock and captures each part's price at sale.")
@@ -157,6 +161,7 @@ public class OrderController {
      * <p>PATCH rather than PUT because it changes the lines and leaves the rest of the order —
      * customer, branch, warehouse, date — alone.
      */
+    @PreAuthorize("isAuthenticated()")
     @PatchMapping("/{id}/lines")
     @Operation(summary = "Amend an order's lines",
                description = "Send the full desired set. Existing lines keep their original price.")
@@ -173,6 +178,7 @@ public class OrderController {
      * <p>Stock is not touched: it left the shelf when the order was placed. Decrementing again
      * here would double-count.
      */
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/{id}/fulfil")
     @Operation(summary = "Mark an order delivered",
                description = "Only a PLACED order can be fulfilled. Stock is unchanged.")
@@ -186,6 +192,7 @@ public class OrderController {
      * <p>The restoration is the substance. Changing the status alone would leak inventory
      * silently — stock removed at placement, never given back, nothing reporting the gap.
      */
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/{id}/cancel")
     @Operation(summary = "Cancel an order",
                description = "Returns the parts to warehouse stock. Only a PLACED order can be cancelled.")

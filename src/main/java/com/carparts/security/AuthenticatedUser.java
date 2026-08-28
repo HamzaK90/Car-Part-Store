@@ -26,4 +26,14 @@ public record AuthenticatedUser(
         UserRole role,
         Long departmentId,
         boolean manager) {
+
+    /**
+     * Whether this caller manages the given department.
+     *
+     * <p>Both conditions are needed: the flag alone would let any manager edit any department,
+     * and the department alone would let every employee edit the one they work in.
+     */
+    public boolean manages(Long department) {
+        return manager && departmentId != null && departmentId.equals(department);
+    }
 }

@@ -14,6 +14,7 @@ import java.net.URI;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -67,6 +68,7 @@ public class SupplierController {
     }
 
     /** A duplicate name comes back as 409 from {@code uq_supplier_name}. */
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     @Operation(summary = "Add a supplier", description = "The name must be unique.")
     public ResponseEntity<SupplierResponse> create(
@@ -84,6 +86,7 @@ public class SupplierController {
      * <p>The address is one embedded value, so naming only the city keeps the street rather than
      * blanking it.
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}")
     @Operation(summary = "Update a supplier",
                description = "Only the fields supplied change; a partial address keeps what it omits.")
@@ -100,6 +103,7 @@ public class SupplierController {
      * so those parts have nowhere to go — deleting the vendor would have to take the catalogue
      * with it.
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     @Operation(summary = "Remove a supplier",
                description = "Refused while parts in the catalogue still come from them.")

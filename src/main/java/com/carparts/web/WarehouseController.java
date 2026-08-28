@@ -19,6 +19,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,6 +36,8 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * <p>No {@code @Transactional} here: every query fetches the part or warehouse it reports on,
  * so nothing is left to resolve while the response is written — see {@link OrderController}.
+ *
+ * <p><b>Every mutating endpoint here carries an explicit rule.</b> These are operational rather than administrative — taking an order, moving stock — so they are open to any authenticated member of staff rather than to ADMIN alone. Saying {@code isAuthenticated()} out loud is deliberate: it makes an endpoint with <em>no</em> annotation an anomaly a reader can spot, instead of leaving "open to everyone" and "somebody forgot" looking identical. The filter chain already requires authentication for every path, so these add no enforcement today; they are here so that a {@code permitAll} matcher added later cannot silently open a write.
  */
 @RestController
 @RequestMapping("/api")
@@ -108,6 +111,7 @@ public class WarehouseController {
      * <p>Adds rather than replaces: two deliveries of the same part in a day are two deliveries.
      * To correct a count after a physical stock-take, use the PUT below.
      */
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/warehouses/{id}/stock")
     @Operation(summary = "Receive a delivery",
                description = "Adds to the current quantity, creating the row if it does not exist.")
@@ -128,6 +132,7 @@ public class WarehouseController {
      * <p>Both ends come back. Returning one of them meant the caller addressed this warehouse
      * and received a quantity belonging to the other, with nothing in the body saying which.
      */
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/warehouses/{id}/stock/transfer")
     @Operation(summary = "Transfer stock to another warehouse",
                description = "Atomic: both sides move together or neither does. Returns both rows.")
@@ -145,6 +150,7 @@ public class WarehouseController {
      * and there are 20" are different claims, and one endpoint serving both would leave the
      * caller's intent ambiguous exactly where it matters.
      */
+    @PreAuthorize("isAuthenticated()")
     @PutMapping("/warehouses/{id}/stock/{partId}")
     @Operation(summary = "Correct a stock count",
                description = "Sets the quantity outright, for use after a physical stock-take.")
@@ -156,6 +162,7 @@ public class WarehouseController {
     }
 
     /** Stops a warehouse carrying a part at all. Refused while any units remain. */
+    @PreAuthorize("isAuthenticated()")
     @DeleteMapping("/warehouses/{id}/stock/{partId}")
     @Operation(summary = "Stop carrying a part",
                description = "Refused while the warehouse still holds units of it.")

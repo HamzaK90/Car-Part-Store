@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -27,13 +28,16 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  * defends browser form posts riding on an ambient session cookie. A client sending a bearer
  * token is not exposed to that, and there is no cookie here for a third-party page to ride.
  *
- * <p>Authorisation is coarse at this stage — everything but login and the API description
- * requires a valid token. Which <em>roles</em> may do what is method-level and comes next; doing
- * it here would spread the rules across two places and make the URL patterns the source of
- * truth for something the endpoints understand better than a matcher does.
+ * <p>The chain decides only whether a request is <em>authenticated</em>. Which roles may do what
+ * is {@code @PreAuthorize} on the endpoints themselves, because a URL pattern is a poor place to
+ * express it: {@code /api/departments/{id}} is admin-only for one verb and open to that
+ * department's manager for another, and a matcher cannot see the difference without repeating
+ * the routing. Keeping it on the method also puts the rule where somebody reading the endpoint
+ * will find it.
  */
 @Configuration
 @EnableConfigurationProperties(JwtProperties.class)
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtFilter;
@@ -94,7 +98,7 @@ public class SecurityConfig {
     /** A valid token belonging to somebody who may not do this. */
     private AccessDeniedHandler forbidden() {
         return (request, response, ex) -> write(response, HttpStatus.FORBIDDEN,
-                "Forbidden", "your account may not do that", "forbidden");
+                "Forbidden", Access.REFUSED, "forbidden");
     }
 
     private void write(HttpServletResponse response, HttpStatus status,

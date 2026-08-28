@@ -15,6 +15,7 @@ import java.net.URI;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -77,6 +78,7 @@ public class DepartmentController {
      *
      * <p>{@code freeAreaSqm} is required for a warehouse and refused for a branch.
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     @Operation(summary = "Open a department",
                description = "freeAreaSqm is required for a WAREHOUSE and rejected for a BRANCH.")
@@ -100,6 +102,7 @@ public class DepartmentController {
      *
      * <p>PATCH rather than PUT: it changes one field and leaves the rest of the department alone.
      */
+    @PreAuthorize("hasRole('ADMIN') or @access.managesDepartment(#id)")
     @PatchMapping("/{id}")
     @Operation(summary = "Appoint or remove a manager",
                description = "A null managerId vacates the post, which is a legitimate state.")
@@ -115,6 +118,7 @@ public class DepartmentController {
      * and it is right to: deleting people because their office closed is never what was meant.
      * Orders taken at a branch and stock held in a warehouse hold it in place the same way.
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     @Operation(summary = "Close a department",
                description = "Refused while employees, orders or stock still point at it.")

@@ -14,6 +14,7 @@ import java.net.URI;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -77,6 +78,7 @@ public class CustomerController {
     }
 
     /** A duplicate phone number or email comes back as 409 from the unique constraint. */
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     @Operation(summary = "Register a customer",
                description = "Phone number is required and unique; email is optional but unique where given.")
@@ -95,6 +97,7 @@ public class CustomerController {
      * people editing different things each send everything they last read, and the second
      * silently undoes the first.
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}")
     @Operation(summary = "Update a customer",
                description = "Only the fields supplied change.")
@@ -110,6 +113,7 @@ public class CustomerController {
      * <p>Refused with 409 once they have ordered anything. An invoice with no customer on it is
      * worse than a customer who cannot be deleted.
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     @Operation(summary = "Remove a customer", description = "Refused while they still have orders.")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
